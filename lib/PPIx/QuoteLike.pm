@@ -437,7 +437,7 @@ sub _stringify_source {
 	    PPI::Token::Quote
 	    PPI::Token::QuoteLike::BackTick
 	    PPI::Token::QuoteLike::Command
-	    PPI::Token::QuoteLike::ReadLine
+	    PPI::Token::QuoteLike::Readline
 	} ) {
 	    $string->isa( $class )
 		and return $opt{test} ? 1 : $string->content();
@@ -521,7 +521,7 @@ C<PPI> classes that can be handled are
 L<PPI::Token::Quote|PPI::Token::Quote>,
 L<PPI::Token::QuoteLike::BackTick|PPI::Token::QuoteLike::BackTick>,
 L<PPI::Token::QuoteLike::Command|PPI::Token::QuoteLike::Command>,
-L<PPI::Token::QuoteLike::ReadLine|PPI::Token::QuoteLike::ReadLine>, and
+L<PPI::Token::QuoteLike::Readline|PPI::Token::QuoteLike::Readline>, and
 L<PPI::Token::HereDoc|PPI::Token::HereDoc>. Any other object will cause
 C<new()> to return nothing.
 
