@@ -104,8 +104,8 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 		),
 	    ];
 
-	# ``, '', ""
-	} elsif ( $string =~ m/ \A \s* (?= ( [`'"] ) ) /smxgc ) {
+	# ``, '', "", <>
+	} elsif ( $string =~ m/ \A \s* (?= ( [`'"<] ) ) /smxgc ) {
 	    ( $type, $gap, $start_delim ) = ( '', '', $1 );
 	    $arg{trace}
 		and warn "Initial match '$type$start_delim'\n";
@@ -115,6 +115,8 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 		or return $self->_link_elems(
 		$self->_unknown( $string, MISMATCHED_DELIM ) );
 	    ( $start_delim, $content, $end_delim ) = _chop( $1 );
+
+	# Something we do not recognize
 	} else {
 	    $arg{trace}
 		and warn "No initial match\n";
@@ -435,6 +437,7 @@ sub _stringify_source {
 	    PPI::Token::Quote
 	    PPI::Token::QuoteLike::BackTick
 	    PPI::Token::QuoteLike::Command
+	    PPI::Token::QuoteLike::ReadLine
 	} ) {
 	    $string->isa( $class )
 		and return $opt{test} ? 1 : $string->content();
@@ -453,7 +456,7 @@ sub _stringify_source {
     ref $string
 	and return;
 
-    $string =~ m/ \A \s* (?: q [qx]? | [`'"] | << ) /smx
+    $string =~ m/ \A \s* (?: q [qx]? | << | [`'"<] ) /smx
 	and return $opt{test} ? 1 : $string;
 
     return;
@@ -517,7 +520,8 @@ C<pos()> will be set to the first character after the trailing literal.
 C<PPI> classes that can be handled are
 L<PPI::Token::Quote|PPI::Token::Quote>,
 L<PPI::Token::QuoteLike::BackTick|PPI::Token::QuoteLike::BackTick>,
-L<PPI::Token::QuoteLike::Command|PPI::Token::QuoteLike::Command>, and
+L<PPI::Token::QuoteLike::Command|PPI::Token::QuoteLike::Command>,
+L<PPI::Token::QuoteLike::ReadLine|PPI::Token::QuoteLike::ReadLine>, and
 L<PPI::Token::HereDoc|PPI::Token::HereDoc>. Any other object will cause
 C<new()> to return nothing.
 
