@@ -1,0 +1,239 @@
+#!/usr/bin/env perl
+
+use 5.006;
+
+use strict;
+use warnings;
+
+use Getopt::Long 2.33 qw{ :config auto_version };
+use Pod::Usage;
+use PPIx::QuoteLike;
+use Scalar::Util qw{ looks_like_number };
+
+our $VERSION = '0.000_001';
+
+my %opt;
+
+GetOptions( \%opt,
+    qw{ files! test! trace! },
+    help => sub { pod2usage( { -verbose => 2 } ) },
+) or pod2usage( { -verbose => 0 } );
+
+$opt{file}
+    and $opt{test}
+    and die "Can't assert both -file and -test\n";
+
+my @arg;
+
+my @dox;
+
+if ( $opt{files} ) {
+    require PPI::Document;
+    foreach my $fn ( @ARGV ) {
+	my $doc = PPI::Document->new( $fn );
+	foreach my $elem ( @{ $doc->find( 'PPI::Token' ) || [] } ) {
+	    PPIx::QuoteLike->handles( $elem )
+		and push @arg, $elem;
+	}
+	push @dox, $doc;
+    }
+} else {
+    @arg = @ARGV;
+    $opt{test}
+	and not @arg
+	and @arg = ( split( qr{ \n }smx, <<'EOD' ),
+''
+"foo\"bar"
+q{\Qx}
+qq {\Qx}
+qx '$foo'
+"$foo"
+qx{${foo}bar}
+EOD
+    << 'END OF DATA' );
+<< "EOD"
+$foo->{bar}bazzle
+EOD
+END OF DATA
+}
+
+foreach my $elem ( @arg ) {
+
+    my $obj = PPIx::QuoteLike->new( $elem, trace => $opt{trace} )
+	or do {
+	warn "$elem not handled by PPI::QuoteLike\n";
+	next;
+    };
+
+    my $strq = quote( my $str = $obj->content() );
+
+    local $\ = "\n";
+    if ( $opt{test} ) {
+	my $failures = $obj->failures();
+	my $interpolates = $obj->interpolates();
+	my $type = quote( $obj->type() );
+	my $delimiters = quote( $obj->delimiters() );
+	my $start = quote( $obj->start() );
+	my $finish = quote( scalar $obj->finish() );
+	my $encoding = quote( $obj->encoding() );
+	my $postderef = quote( $obj->postderef() );
+	my @children = $obj->children();
+	my $elements = $obj->elements();
+
+	print <<"EOD";
+
+\$obj = PPIx::QuoteLike->new( $strq );
+if ( ok \$obj, q<Able to parse $str> ) {
+    cmp_ok \$obj->failures(), '==', $failures, q<Failures parsing $str>;
+    cmp_ok \$obj->interpolates(), '==', $interpolates, q<Does $str interpolate>;
+    is \$obj->content(), $strq, q<Can recover $str>;
+    is \$obj->__get_value( 'type' ), $type, q<Type of $str>;
+    is \$obj->delimiters(), $delimiters, q<Delimiters of $str>;
+    is \$obj->__get_value( 'start' ), $start, q<Start delimiter of $str>;
+    is \$obj->__get_value( 'finish' ), $finish, q<Finish delimiter of $str>;
+    is \$obj->encoding(), $encoding, q<$str encoding>;
+    cmp_ok \$obj->postderef(), '==', $postderef, q<$str postderef>;
+    cmp_ok scalar \$obj->elements(), '==', $elements,
+	q<Number of elements of $str>;
+    cmp_ok scalar \$obj->children(), '==', @{[ scalar @children ]},
+	q<Number of children of $str>;
+EOD
+	my $inx = 0;
+	foreach my $kid ( @children ) {
+	    my $content = quote( $kid->content );
+	    my $error = quote( $kid->error() );
+	    print <<"EOD";
+    if ( my \$kid = \$obj->child( $inx ) ) {
+	ok \$kid->isa( '@{[ ref $kid ]}' ),
+	    q<$str child $inx class>;
+	is \$kid->content(), $content, q<$str child $inx content>;
+	is \$kid->error(), $error, q<$str child $inx error>;
+	cmp_ok \$kid->parent(), '==', \$obj,
+	    q<$str child $inx parent>;
+	cmp_ok \$kid->previous_sibling() || 0, '==', \$obj->__kid( $inx - 1 ),
+	    q<$str child $inx previous sibling>;
+	cmp_ok \$kid->next_sibling() || 0, '==', \$obj->__kid( $inx + 1 ),
+	    q<$str child $inx next sibling>;
+    }
+EOD
+	    $inx++;
+	}
+	print "}\n";
+
+    } else {
+
+	print "\n$str";
+	my $delim = sprintf '%s%s...%s',
+	    map { format_content( $obj, $_ ) }
+	    qw{ type start finish };
+	print join "\t", ref $obj, $delim, format_attr( $obj,
+	    qw{ failures interpolates} );
+	foreach my $kid ( $obj->children() ) {
+	    print '  ', join "\t", ref $kid, quote( $kid->content() ),
+		format_attr( $kid, 'error' );
+
+	}
+    }
+}
+
+sub format_attr {
+    my ( $obj, @arg ) = @_;
+    my @rslt;
+    foreach my $attr ( @arg ) {
+	defined( my $val = $obj->$attr() )
+	    or next;
+	push @rslt, sprintf '%s=%s', $attr, quote( $val );
+    }
+    return @rslt;
+}
+
+sub format_content {
+    my ( $obj, $method, @arg ) = @_;
+    my $val = $obj->$method( @arg );
+    ref $val
+	and $val = $val->content();
+    return defined $val ? $val : '?';
+}
+
+sub quote {
+    my ( $val ) = @_;
+    ref $val
+	and $val = $val->content();
+    defined $val
+	or return 'undef';
+    looks_like_number( $val )
+	and return $val;
+    $val =~ m/ [{}] /smx
+	or return "q{$val}";
+    $val =~ m{ / }smx
+	or return "q/$val/";
+    $val =~ s/ (?= [\\'] )/\\/smxg;
+    return "'$val'";
+}
+__END__
+
+=head1 TITLE
+
+pqldump - Dump a quotelike thing
+
+=head1 SYNOPSIS
+
+ pqldump '"foo$bar"'
+ pqldump -help
+ pqldump -version
+
+=head1 OPTIONS
+
+=head2 -files
+
+If this option is asserted, the arguments are taken to be files, which
+are read by L<PPI::Document|PPI::Document> and the appropriate tokens
+analyzed. Otherwise the arguments are literals.
+
+=head2 -help
+
+This option displays the documentation for this script. The script then
+exits.
+
+=head2 -test
+
+If this option is asserted, tests are generated. If not, the constructed
+objects are simply dumped in a format similar to PPI's dump.
+
+You may not assert both C<-file> and C<-test>, which is a shame because
+it leaves me no way to generate tests for here documents.
+
+=head2 -trace
+
+If this option is asserted, trace information is generated. This option
+is unsupported; the author makes no commitment about what it does, and
+reserves the right to modify or retract it without prior notice.
+
+=head2 -version
+
+This option displays the version of this script. The script then exits.
+
+=head1 DETAILS
+
+This Perl script parses the quote-like expressions given on its command
+line, and dumps the resuls of te parse to standard out.
+
+=head1 AUTHOR
+
+Thomas R. Wyant, III F<wyant at cpan dot org>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2016 by Thomas R. Wyant, III
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl 5.10.0. For more details, see the full text
+of the licenses in the directory LICENSES.
+
+This program is distributed in the hope that it will be useful, but
+without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose.
+
+=cut
+
+# ex: set textwidth=72 :
