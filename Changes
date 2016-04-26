@@ -1,3 +1,10 @@
+0.000_003	2016-04-26	T. R. Wyant
+commit c2d7cea52fdb27d514edb3d7d60549fa6fef41f6
+Author: Tom Wyant <wyant@cpan.org>
+Date:   Tue Apr 26 19:13:15 2016 -0400
+
+    Fix spelling of PPI::Token::QuoteLike::Readline
+
 0.000_002	2016-04-26	T. R. Wyant
   Add PPI::Token::QuoteLike::ReadLine to the PPI classes supported. Also
     support the analogous string '<foo>'.
