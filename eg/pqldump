@@ -15,7 +15,7 @@ our $VERSION = '0.000_001';
 my %opt;
 
 GetOptions( \%opt,
-    qw{ files! test! trace! },
+    qw{ files! test! trace! variables! },
     help => sub { pod2usage( { -verbose => 2 } ) },
 ) or pod2usage( { -verbose => 0 } );
 
@@ -130,7 +130,7 @@ EOD
 	    qw{ failures interpolates} );
 	foreach my $kid ( $obj->children() ) {
 	    print '  ', join "\t", ref $kid, quote( $kid->content() ),
-		format_attr( $kid, 'error' );
+		format_attr( $kid, 'error' ), variables( $kid );
 
 	}
     }
@@ -170,6 +170,24 @@ sub quote {
     $val =~ s/ (?= [\\'] )/\\/smxg;
     return "'$val'";
 }
+
+sub variables {
+    my ( $elem ) = @_;
+
+    $opt{variables}
+	or return;
+    $elem->can( 'ppi' )
+	or return;
+
+    my $ppi = $elem->ppi();
+    my @rslt;
+
+    foreach my $elem ( @{ $ppi->find( 'PPI::Token::Symbol' ) || [] } ) {
+	push @rslt, $elem->symbol();
+    }
+
+    return join ',', @rslt;
+}
 __END__
 
 =head1 TITLE
@@ -208,6 +226,11 @@ it leaves me no way to generate tests for here documents.
 If this option is asserted, trace information is generated. This option
 is unsupported; the author makes no commitment about what it does, and
 reserves the right to modify or retract it without prior notice.
+
+=head2 -variables
+
+If this option is asserted, the names of the variables interpolated by
+any interpolation will be dumped.
 
 =head2 -version
 
