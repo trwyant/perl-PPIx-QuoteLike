@@ -13,8 +13,8 @@ our $VERSION = '0.000_001';
 
 sub ppi {
     my ( $self ) = @_;
-    ( my $content = $self->content() ) =~ s/ \A ( [\$\@] \# ) { .* } \z
-    /$1$2/smx;
+    ( my $content = $self->content() ) =~
+	s/ \A ( [\$\@] \#? ) { ( .* ) } \z /$1$2/smx;
     require PPI::Document;
     return PPI::Document->new( \$content, readonly => 1 )
 }
