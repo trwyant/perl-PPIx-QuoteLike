@@ -48,13 +48,24 @@ q{\Qx}
 qq {\Qx}
 qx '$foo'
 "$foo"
+"$$foo"
 qx{${foo}bar}
+<$foo>
 EOD
-    << 'END OF DATA' );
+
+=begin comment
+
+    << 'END OF DATA' ),
 << "EOD"
 $foo->{bar}bazzle
 EOD
 END OF DATA
+
+=end comment
+
+=cut
+
+    ;
 }
 
 foreach my $elem ( @arg ) {
