@@ -153,7 +153,7 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 		    redo;
 		}
 
-		if ( $content =~ m/ \G ( [\$\@] \#? ) /smxgc ) {
+		if ( $content =~ m/ \G ( [\$\@] \#? \$* ) /smxgc ) {
 		    push @children, $self->_interpolation( "$1", $content );
 		    redo;
 		}
@@ -379,6 +379,13 @@ sub _interpolation {	## no critic (RequireArgUnpacking)
 
 	return PPIx::QuoteLike::Token::Interpolation->__new(
 	    content	=> $interp,
+	);
+    }
+
+    # Process ID
+    if ( '$$' eq $sigil ) {
+	return PPIx::QuoteLike::Token::Interpolation->__new(
+	    content	=> $sigil,
 	);
     }
 
