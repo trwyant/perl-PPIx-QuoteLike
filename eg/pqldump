@@ -52,20 +52,12 @@ qx '$foo'
 qx{${foo}bar}
 <$foo>
 EOD
-
-=begin comment
-
-    << 'END OF DATA' ),
-<< "EOD"
-$foo->{bar}bazzle
-EOD
-END OF DATA
-
-=end comment
-
-=cut
-
-    ;
+#    << 'END OF DATA',
+#<< "EOD"
+#$foo->{bar}bazzle
+#EOD
+#END OF DATA
+    );
 }
 
 foreach my $elem ( @arg ) {
