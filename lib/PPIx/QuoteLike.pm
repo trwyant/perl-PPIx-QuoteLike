@@ -452,7 +452,7 @@ sub _stringify_source {
 
 	foreach my $class ( qw{
 	    PPI::Token::Quote
-	    PPI::Token::QuoteLike::BackTick
+	    PPI::Token::QuoteLike::Backtick
 	    PPI::Token::QuoteLike::Command
 	    PPI::Token::QuoteLike::Readline
 	} ) {
@@ -536,7 +536,7 @@ C<pos()> will be set to the first character after the trailing literal.
 
 C<PPI> classes that can be handled are
 L<PPI::Token::Quote|PPI::Token::Quote>,
-L<PPI::Token::QuoteLike::BackTick|PPI::Token::QuoteLike::BackTick>,
+L<PPI::Token::QuoteLike::Backtick|PPI::Token::QuoteLike::Backtick>,
 L<PPI::Token::QuoteLike::Command|PPI::Token::QuoteLike::Command>,
 L<PPI::Token::QuoteLike::Readline|PPI::Token::QuoteLike::Readline>, and
 L<PPI::Token::HereDoc|PPI::Token::HereDoc>. Any other object will cause
