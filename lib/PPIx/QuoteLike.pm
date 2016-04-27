@@ -282,9 +282,19 @@ sub postderef {
     return $self->{postderef};
 }
 
-*schild = \&child;
+sub schild {
+    my ( $self, $inx ) = @_;
+    $inx ||= 0;
+    my @kids = $self->schildren();
+    return $kids[$inx];
+}
 
-*schildren = \&children;
+sub schildren {
+    my ( $self ) = @_;
+    return (
+	grep { $_->significant() } $self->children()
+    );
+}
 
 sub source {
     my ( $self ) = @_;
@@ -672,27 +682,14 @@ a false value if it does not.
 
  my $skid = $str->schild( 0 );
 
-This method returns the significant child elements.
-
-Since all children are significant it is the same as L<child()|/child>,
-but is included for orthogonality with L<PPI|PPI> and
-L<PPIx::Regexp|PPIx::Regexp>. It is recommended that you use this method
-if you really want only significant elements; if you want all elements,
-use L<child()|/child>.
+This method returns the significant child elements whose index is given
+by the argument. Negative indices are interpreted in the usual way.
 
 =head2 schildren
 
  my @skids = $str->schildren();
 
-This method returns the significant children element whose index is
-given by the argument. Negative indices are interpreted in the usual
-Perl sense.
-
-Since all children are significant it is the same as
-L<children()|/children>, but is included for orthogonality with
-L<PPI|PPI> and L<PPIx::Regexp|PPIx::Regexp>. It is recommended that you
-use this method if you really want only significant elements; if you
-want all elements, use L<children()|/children>.
+This method returns the significant children.
 
 =head2 source
 
