@@ -319,6 +319,23 @@ sub type {
     return $self->{type}[ $inx || 0 ];
 }
 
+sub variables {
+    my ( $self ) = @_;
+
+    $self->interpolates()
+	or return;
+
+    my %var;
+    foreach my $kid ( $self->children() ) {
+	$kid->can( 'variables' )
+	    or next;
+	foreach my $sym ( $kid->variables() ) {
+	    $var{$sym} = 1;
+	}
+    }
+    return ( keys %var );
+}
+
 sub _chop {
     my ( $middle ) = @_;
     my $left = substr $middle, 0, 1, '';
@@ -737,6 +754,15 @@ will be the white space (if any) separating the actual type from the
 value.  If called in list context you get the whole array. If called in
 scalar context you get the element whose index is given in the argument,
 or element zero if no argument is specified.
+
+=head2 variables
+
+ say "Interpolates $_" for $str->variables();
+
+This convenience method returns all interpolated variables. Each is
+returned only once, and they are returned in no particular order. If the
+object does not represent a string that interpolates, nothing is
+returned.
 
 =head1 SUPPORT
 

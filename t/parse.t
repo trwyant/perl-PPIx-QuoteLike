@@ -10,7 +10,6 @@ use Test::More 0.88;	# Because of done_testing();
 
 my $obj;
 
-
 $obj = PPIx::QuoteLike->new( q{''} );
 if ( ok $obj, q<Able to parse ''> ) {
     cmp_ok $obj->failures(), '==', 0, q<Failures parsing ''>;
@@ -26,9 +25,7 @@ if ( ok $obj, q<Able to parse ''> ) {
 	q<Number of elements of ''>;
     cmp_ok scalar $obj->children(), '==', 0,
 	q<Number of children of ''>;
-
 }
-
 
 $obj = PPIx::QuoteLike->new( q{"foo\"bar"} );
 if ( ok $obj, q<Able to parse "foo\"bar"> ) {
@@ -45,12 +42,13 @@ if ( ok $obj, q<Able to parse "foo\"bar"> ) {
 	q<Number of elements of "foo\"bar">;
     cmp_ok scalar $obj->children(), '==', 1,
 	q<Number of children of "foo\"bar">;
-
     if ( my $kid = $obj->child( 0 ) ) {
 	ok $kid->isa( 'PPIx::QuoteLike::Token::String' ),
 	    q<"foo\"bar" child 0 class>;
-	is $kid->content(), q{foo\"bar}, q<"foo\"bar" child 0 content>;
-	is $kid->error(), undef, q<"foo\"bar" child 0 error>;
+	is $kid->content(), q{foo\"bar},
+	    q<"foo\"bar" child 0 content>;
+	is $kid->error(), undef,
+	    q<"foo\"bar" child 0 error>;
 	cmp_ok $kid->parent(), '==', $obj,
 	    q<"foo\"bar" child 0 parent>;
 	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 0 - 1 ),
@@ -58,9 +56,7 @@ if ( ok $obj, q<Able to parse "foo\"bar"> ) {
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
 	    q<"foo\"bar" child 0 next sibling>;
     }
-
 }
-
 
 $obj = PPIx::QuoteLike->new( q/q{\Qx}/ );
 if ( ok $obj, q<Able to parse q{\Qx}> ) {
@@ -77,12 +73,13 @@ if ( ok $obj, q<Able to parse q{\Qx}> ) {
 	q<Number of elements of q{\Qx}>;
     cmp_ok scalar $obj->children(), '==', 1,
 	q<Number of children of q{\Qx}>;
-
     if ( my $kid = $obj->child( 0 ) ) {
 	ok $kid->isa( 'PPIx::QuoteLike::Token::String' ),
 	    q<q{\Qx} child 0 class>;
-	is $kid->content(), q{\Qx}, q<q{\Qx} child 0 content>;
-	is $kid->error(), undef, q<q{\Qx} child 0 error>;
+	is $kid->content(), q{\Qx},
+	    q<q{\Qx} child 0 content>;
+	is $kid->error(), undef,
+	    q<q{\Qx} child 0 error>;
 	cmp_ok $kid->parent(), '==', $obj,
 	    q<q{\Qx} child 0 parent>;
 	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 0 - 1 ),
@@ -90,9 +87,7 @@ if ( ok $obj, q<Able to parse q{\Qx}> ) {
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
 	    q<q{\Qx} child 0 next sibling>;
     }
-
 }
-
 
 $obj = PPIx::QuoteLike->new( q/qq {\Qx}/ );
 if ( ok $obj, q<Able to parse qq {\Qx}> ) {
@@ -109,12 +104,13 @@ if ( ok $obj, q<Able to parse qq {\Qx}> ) {
 	q<Number of elements of qq {\Qx}>;
     cmp_ok scalar $obj->children(), '==', 2,
 	q<Number of children of qq {\Qx}>;
-
     if ( my $kid = $obj->child( 0 ) ) {
 	ok $kid->isa( 'PPIx::QuoteLike::Token::Control' ),
 	    q<qq {\Qx} child 0 class>;
-	is $kid->content(), q{\Q}, q<qq {\Qx} child 0 content>;
-	is $kid->error(), undef, q<qq {\Qx} child 0 error>;
+	is $kid->content(), q{\Q},
+	    q<qq {\Qx} child 0 content>;
+	is $kid->error(), undef,
+	    q<qq {\Qx} child 0 error>;
 	cmp_ok $kid->parent(), '==', $obj,
 	    q<qq {\Qx} child 0 parent>;
 	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 0 - 1 ),
@@ -122,12 +118,13 @@ if ( ok $obj, q<Able to parse qq {\Qx}> ) {
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
 	    q<qq {\Qx} child 0 next sibling>;
     }
-
     if ( my $kid = $obj->child( 1 ) ) {
 	ok $kid->isa( 'PPIx::QuoteLike::Token::String' ),
 	    q<qq {\Qx} child 1 class>;
-	is $kid->content(), q{x}, q<qq {\Qx} child 1 content>;
-	is $kid->error(), undef, q<qq {\Qx} child 1 error>;
+	is $kid->content(), q{x},
+	    q<qq {\Qx} child 1 content>;
+	is $kid->error(), undef,
+	    q<qq {\Qx} child 1 error>;
 	cmp_ok $kid->parent(), '==', $obj,
 	    q<qq {\Qx} child 1 parent>;
 	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 1 - 1 ),
@@ -135,9 +132,7 @@ if ( ok $obj, q<Able to parse qq {\Qx}> ) {
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 1 + 1 ),
 	    q<qq {\Qx} child 1 next sibling>;
     }
-
 }
-
 
 $obj = PPIx::QuoteLike->new( q{qx '$foo'} );
 if ( ok $obj, q<Able to parse qx '$foo'> ) {
@@ -154,12 +149,13 @@ if ( ok $obj, q<Able to parse qx '$foo'> ) {
 	q<Number of elements of qx '$foo'>;
     cmp_ok scalar $obj->children(), '==', 1,
 	q<Number of children of qx '$foo'>;
-
     if ( my $kid = $obj->child( 0 ) ) {
 	ok $kid->isa( 'PPIx::QuoteLike::Token::String' ),
 	    q<qx '$foo' child 0 class>;
-	is $kid->content(), q{$foo}, q<qx '$foo' child 0 content>;
-	is $kid->error(), undef, q<qx '$foo' child 0 error>;
+	is $kid->content(), q{$foo},
+	    q<qx '$foo' child 0 content>;
+	is $kid->error(), undef,
+	    q<qx '$foo' child 0 error>;
 	cmp_ok $kid->parent(), '==', $obj,
 	    q<qx '$foo' child 0 parent>;
 	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 0 - 1 ),
@@ -167,9 +163,7 @@ if ( ok $obj, q<Able to parse qx '$foo'> ) {
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
 	    q<qx '$foo' child 0 next sibling>;
     }
-
 }
-
 
 $obj = PPIx::QuoteLike->new( q{"$foo"} );
 if ( ok $obj, q<Able to parse "$foo"> ) {
@@ -186,22 +180,26 @@ if ( ok $obj, q<Able to parse "$foo"> ) {
 	q<Number of elements of "$foo">;
     cmp_ok scalar $obj->children(), '==', 1,
 	q<Number of children of "$foo">;
-
     if ( my $kid = $obj->child( 0 ) ) {
 	ok $kid->isa( 'PPIx::QuoteLike::Token::Interpolation' ),
 	    q<"$foo" child 0 class>;
-	is $kid->content(), q{$foo}, q<"$foo" child 0 content>;
-	is $kid->error(), undef, q<"$foo" child 0 error>;
+	is $kid->content(), q{$foo},
+	    q<"$foo" child 0 content>;
+	is $kid->error(), undef,
+	    q<"$foo" child 0 error>;
 	cmp_ok $kid->parent(), '==', $obj,
 	    q<"$foo" child 0 parent>;
 	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 0 - 1 ),
 	    q<"$foo" child 0 previous sibling>;
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
 	    q<"$foo" child 0 next sibling>;
+	if ( eval { require PPI::Document; 1 } ) {
+	    is_deeply [ sort $kid->variables() ],
+		[ qw{ $foo } ],
+		q<"$foo" child 0 interpolated variables>;
+	}
     }
-
 }
-
 
 $obj = PPIx::QuoteLike->new( q{"$$foo"} );
 if ( ok $obj, q<Able to parse "$$foo"> ) {
@@ -218,22 +216,26 @@ if ( ok $obj, q<Able to parse "$$foo"> ) {
 	q<Number of elements of "$$foo">;
     cmp_ok scalar $obj->children(), '==', 1,
 	q<Number of children of "$$foo">;
-
     if ( my $kid = $obj->child( 0 ) ) {
 	ok $kid->isa( 'PPIx::QuoteLike::Token::Interpolation' ),
 	    q<"$$foo" child 0 class>;
-	is $kid->content(), q{$$foo}, q<"$$foo" child 0 content>;
-	is $kid->error(), undef, q<"$$foo" child 0 error>;
+	is $kid->content(), q{$$foo},
+	    q<"$$foo" child 0 content>;
+	is $kid->error(), undef,
+	    q<"$$foo" child 0 error>;
 	cmp_ok $kid->parent(), '==', $obj,
 	    q<"$$foo" child 0 parent>;
 	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 0 - 1 ),
 	    q<"$$foo" child 0 previous sibling>;
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
 	    q<"$$foo" child 0 next sibling>;
+	if ( eval { require PPI::Document; 1 } ) {
+	    is_deeply [ sort $kid->variables() ],
+		[ qw{ $foo } ],
+		q<"$$foo" child 0 interpolated variables>;
+	}
     }
-
 }
-
 
 $obj = PPIx::QuoteLike->new( q/qx{${foo}bar}/ );
 if ( ok $obj, q<Able to parse qx{${foo}bar}> ) {
@@ -250,25 +252,32 @@ if ( ok $obj, q<Able to parse qx{${foo}bar}> ) {
 	q<Number of elements of qx{${foo}bar}>;
     cmp_ok scalar $obj->children(), '==', 2,
 	q<Number of children of qx{${foo}bar}>;
-
     if ( my $kid = $obj->child( 0 ) ) {
 	ok $kid->isa( 'PPIx::QuoteLike::Token::Interpolation' ),
 	    q<qx{${foo}bar} child 0 class>;
-	is $kid->content(), q/${foo}/, q<qx{${foo}bar} child 0 content>;
-	is $kid->error(), undef, q<qx{${foo}bar} child 0 error>;
+	is $kid->content(), q/${foo}/,
+	    q<qx{${foo}bar} child 0 content>;
+	is $kid->error(), undef,
+	    q<qx{${foo}bar} child 0 error>;
 	cmp_ok $kid->parent(), '==', $obj,
 	    q<qx{${foo}bar} child 0 parent>;
 	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 0 - 1 ),
 	    q<qx{${foo}bar} child 0 previous sibling>;
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
 	    q<qx{${foo}bar} child 0 next sibling>;
+	if ( eval { require PPI::Document; 1 } ) {
+	    is_deeply [ sort $kid->variables() ],
+		[ qw{ $foo } ],
+		q<qx{${foo}bar} child 0 interpolated variables>;
+	}
     }
-
     if ( my $kid = $obj->child( 1 ) ) {
 	ok $kid->isa( 'PPIx::QuoteLike::Token::String' ),
 	    q<qx{${foo}bar} child 1 class>;
-	is $kid->content(), q{bar}, q<qx{${foo}bar} child 1 content>;
-	is $kid->error(), undef, q<qx{${foo}bar} child 1 error>;
+	is $kid->content(), q{bar},
+	    q<qx{${foo}bar} child 1 content>;
+	is $kid->error(), undef,
+	    q<qx{${foo}bar} child 1 error>;
 	cmp_ok $kid->parent(), '==', $obj,
 	    q<qx{${foo}bar} child 1 parent>;
 	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 1 - 1 ),
@@ -276,9 +285,7 @@ if ( ok $obj, q<Able to parse qx{${foo}bar}> ) {
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 1 + 1 ),
 	    q<qx{${foo}bar} child 1 next sibling>;
     }
-
 }
-
 
 $obj = PPIx::QuoteLike->new( q{<$foo>} );
 if ( ok $obj, q<Able to parse <$foo>> ) {
@@ -295,20 +302,89 @@ if ( ok $obj, q<Able to parse <$foo>> ) {
 	q<Number of elements of <$foo>>;
     cmp_ok scalar $obj->children(), '==', 1,
 	q<Number of children of <$foo>>;
-
     if ( my $kid = $obj->child( 0 ) ) {
 	ok $kid->isa( 'PPIx::QuoteLike::Token::Interpolation' ),
 	    q<<$foo> child 0 class>;
-	is $kid->content(), q{$foo}, q<<$foo> child 0 content>;
-	is $kid->error(), undef, q<<$foo> child 0 error>;
+	is $kid->content(), q{$foo},
+	    q<<$foo> child 0 content>;
+	is $kid->error(), undef,
+	    q<<$foo> child 0 error>;
 	cmp_ok $kid->parent(), '==', $obj,
 	    q<<$foo> child 0 parent>;
 	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 0 - 1 ),
 	    q<<$foo> child 0 previous sibling>;
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
 	    q<<$foo> child 0 next sibling>;
+	if ( eval { require PPI::Document; 1 } ) {
+	    is_deeply [ sort $kid->variables() ],
+		[ qw{ $foo } ],
+		q<<$foo> child 0 interpolated variables>;
+	}
     }
+}
 
+$obj = PPIx::QuoteLike->new( q/"foo@{[ qq<$bar$baz> ]}buzz"/ );
+if ( ok $obj, q<Able to parse "foo@{[ qq<$bar$baz> ]}buzz"> ) {
+    cmp_ok $obj->failures(), '==', 0, q<Failures parsing "foo@{[ qq<$bar$baz> ]}buzz">;
+    cmp_ok $obj->interpolates(), '==', 1, q<Does "foo@{[ qq<$bar$baz> ]}buzz" interpolate>;
+    is $obj->content(), q/"foo@{[ qq<$bar$baz> ]}buzz"/, q<Can recover "foo@{[ qq<$bar$baz> ]}buzz">;
+    is $obj->__get_value( 'type' ), q{}, q<Type of "foo@{[ qq<$bar$baz> ]}buzz">;
+    is $obj->delimiters(), q{""}, q<Delimiters of "foo@{[ qq<$bar$baz> ]}buzz">;
+    is $obj->__get_value( 'start' ), q{"}, q<Start delimiter of "foo@{[ qq<$bar$baz> ]}buzz">;
+    is $obj->__get_value( 'finish' ), q{"}, q<Finish delimiter of "foo@{[ qq<$bar$baz> ]}buzz">;
+    is $obj->encoding(), undef, q<"foo@{[ qq<$bar$baz> ]}buzz" encoding>;
+    cmp_ok $obj->postderef(), '==', 1, q<"foo@{[ qq<$bar$baz> ]}buzz" postderef>;
+    cmp_ok scalar $obj->elements(), '==', 6,
+	q<Number of elements of "foo@{[ qq<$bar$baz> ]}buzz">;
+    cmp_ok scalar $obj->children(), '==', 3,
+	q<Number of children of "foo@{[ qq<$bar$baz> ]}buzz">;
+    if ( my $kid = $obj->child( 0 ) ) {
+	ok $kid->isa( 'PPIx::QuoteLike::Token::String' ),
+	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 0 class>;
+	is $kid->content(), q{foo},
+	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 0 content>;
+	is $kid->error(), undef,
+	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 0 error>;
+	cmp_ok $kid->parent(), '==', $obj,
+	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 0 parent>;
+	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 0 - 1 ),
+	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 0 previous sibling>;
+	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
+	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 0 next sibling>;
+    }
+    if ( my $kid = $obj->child( 1 ) ) {
+	ok $kid->isa( 'PPIx::QuoteLike::Token::Interpolation' ),
+	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 1 class>;
+	is $kid->content(), q/@{[ qq<$bar$baz> ]}/,
+	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 1 content>;
+	is $kid->error(), undef,
+	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 1 error>;
+	cmp_ok $kid->parent(), '==', $obj,
+	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 1 parent>;
+	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 1 - 1 ),
+	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 1 previous sibling>;
+	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 1 + 1 ),
+	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 1 next sibling>;
+	if ( eval { require PPI::Document; 1 } ) {
+	    is_deeply [ sort $kid->variables() ],
+		[ qw{ $bar $baz } ],
+		q<"foo@{[ qq<$bar$baz> ]}buzz" child 1 interpolated variables>;
+	}
+    }
+    if ( my $kid = $obj->child( 2 ) ) {
+	ok $kid->isa( 'PPIx::QuoteLike::Token::String' ),
+	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 2 class>;
+	is $kid->content(), q{buzz},
+	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 2 content>;
+	is $kid->error(), undef,
+	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 2 error>;
+	cmp_ok $kid->parent(), '==', $obj,
+	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 2 parent>;
+	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 2 - 1 ),
+	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 2 previous sibling>;
+	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 2 + 1 ),
+	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 2 next sibling>;
+    }
 }
 
 

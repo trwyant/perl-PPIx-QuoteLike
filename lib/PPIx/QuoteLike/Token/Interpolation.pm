@@ -19,6 +19,39 @@ sub ppi {
     return PPI::Document->new( \$content, readonly => 1 )
 }
 
+sub variables {
+    my ( $self ) = @_;
+
+    require PPIx::QuoteLike;
+
+    my %var;
+
+    my $ppi = $self->ppi();
+    foreach my $sym ( @{ $ppi->find( 'PPI::Token::Symbol' ) || [] } ) {
+	$var{ $sym->symbol() } = 1;
+    }
+
+    foreach my $class ( qw{
+	    PPI::Token::Quote
+	    PPI::Token::QuoteLike::Backtick
+	    PPI::Token::QuoteLike::Command
+	    PPI::Token::QuoteLike::Readline
+	    PPI::Token::HereDoc
+	} ) {
+	foreach my $elem ( @{ $ppi->find( $class ) || [] } ) {
+	    my $ql = PPIx::QuoteLike->new( $elem )
+		or next;
+	    $ql->interpolates()
+		or next;
+	    foreach my $sym ( $ql->variables() ) {
+		$var{ $sym } = 1;
+	    }
+	}
+    }
+
+    return ( keys %var );
+}
+
 1;
 
 __END__
@@ -64,6 +97,13 @@ interpolated variable names may be enclosed in curly brackets, but this
 does not happen in normal code. For example, in C</${foo}bar/>, the
 content of the C<PPIx::Regexp::Token::Interpolation> object will be
 C<'${foo}'>, but the content of the C<PPI::Document> will be C<'$foo'>.
+
+=head2 variables
+
+ say "Interpolates $_" for $elem->variables();
+
+This convenience method returns all interpolated variables. Each is
+returned only once, and they are returned in no particular order.
 
 =head1 SEE ALSO
 

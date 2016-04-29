@@ -51,6 +51,7 @@ qx '$foo'
 "$$foo"
 qx{${foo}bar}
 <$foo>
+"foo@{[ qq<$bar$baz> ]}buzz"
 EOD
 #    << 'END OF DATA',
 #<< "EOD"
@@ -70,7 +71,6 @@ foreach my $elem ( @arg ) {
 
     my $strq = quote( my $str = $obj->content() );
 
-    local $\ = "\n";
     if ( $opt{test} ) {
 	my $failures = $obj->failures();
 	my $interpolates = $obj->interpolates();
@@ -109,14 +109,27 @@ EOD
     if ( my \$kid = \$obj->child( $inx ) ) {
 	ok \$kid->isa( '@{[ ref $kid ]}' ),
 	    q<$str child $inx class>;
-	is \$kid->content(), $content, q<$str child $inx content>;
-	is \$kid->error(), $error, q<$str child $inx error>;
+	is \$kid->content(), $content,
+	    q<$str child $inx content>;
+	is \$kid->error(), $error,
+	    q<$str child $inx error>;
 	cmp_ok \$kid->parent(), '==', \$obj,
 	    q<$str child $inx parent>;
 	cmp_ok \$kid->previous_sibling() || 0, '==', \$obj->__kid( $inx - 1 ),
 	    q<$str child $inx previous sibling>;
 	cmp_ok \$kid->next_sibling() || 0, '==', \$obj->__kid( $inx + 1 ),
 	    q<$str child $inx next sibling>;
+EOD
+	    if ( $kid->can( 'variables' ) ) {
+		print <<"EOD";
+	if ( eval { require PPI::Document; 1 } ) {
+	    is_deeply [ sort \$kid->variables() ],
+		[ qw{ @{[ sort $kid->variables() ]} } ],
+		q<$str child $inx interpolated variables>;
+	}
+EOD
+	    }
+	    print <<'EOD';
     }
 EOD
 	    $inx++;
@@ -125,6 +138,7 @@ EOD
 
     } else {
 
+	local $\ = "\n";
 	print "\n$str";
 	my $delim = sprintf '%s%s...%s',
 	    map { format_content( $obj, $_ ) }
@@ -178,18 +192,10 @@ sub variables {
     my ( $elem ) = @_;
 
     $opt{variables}
+	and $elem->can( 'variables' )
 	or return;
-    $elem->can( 'ppi' )
-	or return;
 
-    my $ppi = $elem->ppi();
-    my @rslt;
-
-    foreach my $elem ( @{ $ppi->find( 'PPI::Token::Symbol' ) || [] } ) {
-	push @rslt, $elem->symbol();
-    }
-
-    return join ',', @rslt;
+    return join ',', sort $elem->variables();
 }
 __END__
 
