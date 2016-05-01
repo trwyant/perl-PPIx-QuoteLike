@@ -1,5 +1,11 @@
+0.000_007	2016-05-01	T. R. Wyant
+  Better bracket stripping in ppi().
+    The problem here was that it was incorrectly changing '@{$x[$i]}' to
+    '@$x[$i]'. The intent was that the brackets only be stripped if they
+    enclose a variable name (e.g. '@{main::var}').
+
 0.000_006	2016-04-30	T. R. Wyant
-  Stricter test for names of interpolated variables.  The old code
+  Stricter test for names of interpolated variables. The old code
     allowed any mix of [\w:]. This tripped over "$foo::$bar", in which
     the correct parse has interpolation '$foo', string '::', and
     interpolation '$bar', but the former code made this interpolations
