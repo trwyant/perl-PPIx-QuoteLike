@@ -371,7 +371,10 @@ sub _interpolation {	## no critic (RequireArgUnpacking)
 	confess 'Failed to match /./';
     }
 
-    if ( $_[2] =~ m/ \G ( [\w:]+ | [[:punct:]] ) /smxgc ) {
+    if ( $_[2] =~ m< \G (
+	[[:alpha:]_]\w* (?: :: [[:alpha:]_] \w* )* |
+	[[:punct:]] ) >smxgc
+    ) {
 	my $interp = "$sigil$1";
 	while ( $_[2] =~ m/ \G  ( (?: -> )? ) (?= ( [[{] ) ) /smxgc ) {	# }]
 	    my $lead_in = $1;

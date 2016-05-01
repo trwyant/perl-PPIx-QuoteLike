@@ -52,6 +52,7 @@ qx '$foo'
 qx{${foo}bar}
 <$foo>
 "foo@{[ qq<$bar$baz> ]}buzz"
+"$foo::$bar"
 EOD
 #    << 'END OF DATA',
 #<< "EOD"
@@ -95,6 +96,11 @@ if ( ok \$obj, q<Able to parse $str> ) {
     is \$obj->__get_value( 'start' ), $start, q<Start delimiter of $str>;
     is \$obj->__get_value( 'finish' ), $finish, q<Finish delimiter of $str>;
     is \$obj->encoding(), $encoding, q<$str encoding>;
+    if ( eval { require PPI::Document; 1 } ) {
+	is_deeply [ sort \$obj->variables() ],
+	    [ qw{ @{[ sort $obj->variables() ]} } ],
+	    q<$str interpolated variables>;
+    }
     cmp_ok \$obj->postderef(), '==', $postderef, q<$str postderef>;
     cmp_ok scalar \$obj->elements(), '==', $elements,
 	q<Number of elements of $str>;
