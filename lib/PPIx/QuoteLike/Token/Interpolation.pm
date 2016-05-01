@@ -6,6 +6,7 @@ use strict;
 use warnings;
 
 use Carp;
+use PPIx::QuoteLike::Constant qw{ VARIABLE_RE };
 
 use base qw{ PPIx::QuoteLike::Token };
 
@@ -14,7 +15,7 @@ our $VERSION = '0.000_006';
 sub ppi {
     my ( $self ) = @_;
     ( my $content = $self->content() ) =~
-	s/ \A ( [\$\@] \#? ) { ( .* ) } \z /$1$2/smx;
+	s/ \A ( [\$\@] \#? ) \{ ( @{[ VARIABLE_RE ]} ) \} \z /$1$2/smxo;
     require PPI::Document;
     return PPI::Document->new( \$content, readonly => 1 )
 }

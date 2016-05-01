@@ -511,6 +511,47 @@ if ( ok $obj, q<Able to parse "$foo::$bar"> ) {
     }
 }
 
+$obj = PPIx::QuoteLike->new( q/"@{$x[$i]}"/ );
+if ( ok $obj, q<Able to parse "@{$x[$i]}"> ) {
+    cmp_ok $obj->failures(), '==', 0, q<Failures parsing "@{$x[$i]}">;
+    cmp_ok $obj->interpolates(), '==', 1, q<Does "@{$x[$i]}" interpolate>;
+    is $obj->content(), q/"@{$x[$i]}"/, q<Can recover "@{$x[$i]}">;
+    is $obj->__get_value( 'type' ), q{}, q<Type of "@{$x[$i]}">;
+    is $obj->delimiters(), q{""}, q<Delimiters of "@{$x[$i]}">;
+    is $obj->__get_value( 'start' ), q{"}, q<Start delimiter of "@{$x[$i]}">;
+    is $obj->__get_value( 'finish' ), q{"}, q<Finish delimiter of "@{$x[$i]}">;
+    is $obj->encoding(), undef, q<"@{$x[$i]}" encoding>;
+    if ( eval { require PPI::Document; 1 } ) {
+	is_deeply [ sort $obj->variables() ],
+	    [ qw{ $i @x } ],
+	    q<"@{$x[$i]}" interpolated variables>;
+    }
+    cmp_ok $obj->postderef(), '==', 1, q<"@{$x[$i]}" postderef>;
+    cmp_ok scalar $obj->elements(), '==', 4,
+	q<Number of elements of "@{$x[$i]}">;
+    cmp_ok scalar $obj->children(), '==', 1,
+	q<Number of children of "@{$x[$i]}">;
+    if ( my $kid = $obj->child( 0 ) ) {
+	ok $kid->isa( 'PPIx::QuoteLike::Token::Interpolation' ),
+	    q<"@{$x[$i]}" child 0 class>;
+	is $kid->content(), q/@{$x[$i]}/,
+	    q<"@{$x[$i]}" child 0 content>;
+	is $kid->error(), undef,
+	    q<"@{$x[$i]}" child 0 error>;
+	cmp_ok $kid->parent(), '==', $obj,
+	    q<"@{$x[$i]}" child 0 parent>;
+	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 0 - 1 ),
+	    q<"@{$x[$i]}" child 0 previous sibling>;
+	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
+	    q<"@{$x[$i]}" child 0 next sibling>;
+	if ( eval { require PPI::Document; 1 } ) {
+	    is_deeply [ sort $kid->variables() ],
+		[ qw{ $i @x } ],
+		q<"@{$x[$i]}" child 0 interpolated variables>;
+	}
+    }
+}
+
 done_testing;
 
 sub PPIx::QuoteLike::__get_value {

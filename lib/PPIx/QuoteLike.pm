@@ -7,6 +7,7 @@ use warnings;
 
 use Carp;
 use Encode ();
+use PPIx::QuoteLike::Constant qw{ VARIABLE_RE };
 use PPIx::QuoteLike::Token::Control;
 use PPIx::QuoteLike::Token::Delimiter;
 use PPIx::QuoteLike::Token::Interpolation;
@@ -371,9 +372,7 @@ sub _interpolation {	## no critic (RequireArgUnpacking)
 	confess 'Failed to match /./';
     }
 
-    if ( $_[2] =~ m< \G (
-	[[:alpha:]_]\w* (?: :: [[:alpha:]_] \w* )* |
-	[[:punct:]] ) >smxgc
+    if ( $_[2] =~ m< \G ( @{[ VARIABLE_RE ]} ) >smxgco
     ) {
 	my $interp = "$sigil$1";
 	while ( $_[2] =~ m/ \G  ( (?: -> )? ) (?= ( [[{] ) ) /smxgc ) {	# }]

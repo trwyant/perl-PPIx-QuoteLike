@@ -4,6 +4,7 @@ eg/pqldump
 inc/My/Module/Build.pm
 inc/My/Module/Meta.pm
 lib/PPIx/QuoteLike.pm
+lib/PPIx/QuoteLike/Constant.pm
 lib/PPIx/QuoteLike/Token.pm
 lib/PPIx/QuoteLike/Token/Control.pm
 lib/PPIx/QuoteLike/Token/Delimiter.pm
