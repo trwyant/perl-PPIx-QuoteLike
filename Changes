@@ -1,3 +1,11 @@
+0.000_006	2016-04-30	T. R. Wyant
+  Stricter test for names of interpolated variables.  The old code
+    allowed any mix of [\w:]. This tripped over "$foo::$bar", in which
+    the correct parse has interpolation '$foo', string '::', and
+    interpolation '$bar', but the former code made this interpolations
+    '$foo::' and '$bar'. The correct parse is verified by B::Deparse,
+    which deparses "$foo::$bar" to "${foo}::$bar".
+
 0.000_005	2016-04-28	T. R. Wyant
   Add method variables() to return interpolated variable names. The
     basic implementatino is on PPIx::QuoteLike::Token::Interpolation,

@@ -16,7 +16,7 @@ use PPIx::QuoteLike::Token::Unknown;
 use PPIx::QuoteLike::Token::Whitespace;
 use Scalar::Util ();
 
-our $VERSION = '0.000_005';
+our $VERSION = '0.000_006';
 
 use constant ARRAY	=> ref [];
 use constant CODE	=> ref sub {};
