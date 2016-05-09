@@ -560,9 +560,11 @@ sub _stringify_source {
 	if ( $string->isa( 'PPI::Token::HereDoc' ) ) {
 	    $opt{test}
 		and return 1;
-	    return join "\n",
-		map { $self->__decode( $string->$_(), $encoding ) }
-		qw{ content heredoc terminator };
+	    my $content = $self->__decode( $string->content(), $encoding );
+	    my $heredoc = $self->__decode( $string->heredoc(), $encoding );
+	    my $terminator = $self->__decode(
+		$string->terminator(), $encoding );
+	    return "$content\n$heredoc$terminator\n";
 	}
 
 	return;

@@ -61,11 +61,11 @@ qx{${foo}bar}
 "$foo::$bar"
 "@{$x[$i]}"
 EOD
-#    << 'END OF DATA',
-#<< "EOD"
-#$foo->{bar}bazzle
-#EOD
-#END OF DATA
+    << 'END OF DATA',
+<< "EOD"
+$foo->{bar}bazzle
+EOD
+END OF DATA
     );
 }
 
@@ -97,25 +97,25 @@ foreach my $elem ( @arg ) {
 	print <<"EOD";
 
 \$obj = PPIx::QuoteLike->new( $strq );
-if ( ok \$obj, q<Able to parse $str> ) {
-    cmp_ok \$obj->failures(), '==', $failures, q<Failures parsing $str>;
-    cmp_ok \$obj->interpolates(), '==', $interpolates, q<Does $str interpolate>;
-    is \$obj->content(), $strq, q<Can recover $str>;
-    is \$obj->__get_value( 'type' ), $type, q<Type of $str>;
-    is \$obj->delimiters(), $delimiters, q<Delimiters of $str>;
-    is \$obj->__get_value( 'start' ), $start, q<Start delimiter of $str>;
-    is \$obj->__get_value( 'finish' ), $finish, q<Finish delimiter of $str>;
-    is \$obj->encoding(), $encoding, q<$str encoding>;
+if ( ok \$obj, q{Able to parse $str} ) {
+    cmp_ok \$obj->failures(), '==', $failures, q{Failures parsing $str};
+    cmp_ok \$obj->interpolates(), '==', $interpolates, q{Does $str interpolate};
+    is \$obj->content(), $strq, q{Can recover $str};
+    is \$obj->__get_value( 'type' ), $type, q{Type of $str};
+    is \$obj->delimiters(), $delimiters, q{Delimiters of $str};
+    is \$obj->__get_value( 'start' ), $start, q{Start delimiter of $str};
+    is \$obj->__get_value( 'finish' ), $finish, q{Finish delimiter of $str};
+    is \$obj->encoding(), $encoding, q{$str encoding};
     if ( eval { require PPI::Document; 1 } ) {
 	is_deeply [ sort \$obj->variables() ],
 	    [ qw{ @{[ sort $obj->variables() ]} } ],
-	    q<$str interpolated variables>;
+	    q{$str interpolated variables};
     }
-    cmp_ok \$obj->postderef(), '==', $postderef, q<$str postderef>;
+    cmp_ok \$obj->postderef(), '==', $postderef, q{$str postderef};
     cmp_ok scalar \$obj->elements(), '==', $elements,
-	q<Number of elements of $str>;
+	q{Number of elements of $str};
     cmp_ok scalar \$obj->children(), '==', @{[ scalar @children ]},
-	q<Number of children of $str>;
+	q{Number of children of $str};
 EOD
 	my $inx = 0;
 	foreach my $kid ( @children ) {
@@ -124,24 +124,24 @@ EOD
 	    print <<"EOD";
     if ( my \$kid = \$obj->child( $inx ) ) {
 	ok \$kid->isa( '@{[ ref $kid ]}' ),
-	    q<$str child $inx class>;
+	    q{$str child $inx class};
 	is \$kid->content(), $content,
-	    q<$str child $inx content>;
+	    q{$str child $inx content};
 	is \$kid->error(), $error,
-	    q<$str child $inx error>;
+	    q{$str child $inx error};
 	cmp_ok \$kid->parent(), '==', \$obj,
-	    q<$str child $inx parent>;
+	    q{$str child $inx parent};
 	cmp_ok \$kid->previous_sibling() || 0, '==', \$obj->__kid( $inx - 1 ),
-	    q<$str child $inx previous sibling>;
+	    q{$str child $inx previous sibling};
 	cmp_ok \$kid->next_sibling() || 0, '==', \$obj->__kid( $inx + 1 ),
-	    q<$str child $inx next sibling>;
+	    q{$str child $inx next sibling};
 EOD
 	    if ( $kid->can( 'variables' ) ) {
 		print <<"EOD";
 	if ( eval { require PPI::Document; 1 } ) {
 	    is_deeply [ sort \$kid->variables() ],
 		[ qw{ @{[ sort $kid->variables() ]} } ],
-		q<$str child $inx interpolated variables>;
+		q{$str child $inx interpolated variables};
 	}
 EOD
 	    }
@@ -196,6 +196,13 @@ sub quote {
 	or return 'undef';
     looks_like_number( $val )
 	and return $val;
+    if ( $val =~ m/ \A << /smx ) {
+	chomp $val;
+	return "<<'__END_OF_HERE_DOCUMENT'
+$val
+__END_OF_HERE_DOCUMENT
+";
+    }
     $val =~ m/ [{}] /smx
 	or return "q{$val}";
     $val =~ m{ / }smx
