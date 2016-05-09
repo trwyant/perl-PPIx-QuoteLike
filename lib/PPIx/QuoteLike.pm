@@ -53,10 +53,8 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 
 	bless $self, ref $class || $class;
 
-	defined( $string = _stringify_source( $string ) )
+	defined( $string = $self->_stringify_source( $string ) )
 	    or return;
-
-	$string = $self->__decode( $string );
 
 	my ( $type, $gap, $content, $end_delim, $start_delim );
 
@@ -269,8 +267,8 @@ sub finish {
 }
 
 sub handles {
-    my ( undef, $string ) = @_;
-    return _stringify_source( $string, test => 1 );
+    my ( $self, $string ) = @_;
+    return $self->_stringify_source( $string, test => 1 );
 }
 
 sub interpolates {
@@ -349,11 +347,83 @@ sub _chop {
 # that this will be called there.
 
 sub __decode {
-    my ( $self, $data ) = @_;
-    defined $self->{encoding} or return $data;
-    encode_available() or return $data;
-    return Encode::decode( $self->{encoding}, $data );
+    my ( $self, $data, $encoding ) = @_;
+    $encoding ||= $self->{encoding};
+    defined $encoding
+	and _encode_available()
+	or return $data;
+    return Encode::decode( $encoding, $data );
 }
+
+{
+
+    my $encode_available;
+
+    sub _encode_available {
+	defined $encode_available and return $encode_available;
+	return ( $encode_available = eval {
+		require Encode;
+		1;
+	    } ? 1 : 0
+	);
+    }
+
+}
+
+{
+    my ( $cached_doc, $cached_encoding );
+
+    # These are the byte order marks documented as being recognized by
+    # PPI. Only utf-8 is documented as supported.
+    my %known_bom = (
+	'EFBBBF'	=> 'utf-8',
+	'0000FEFF'	=> 'utf-32be',
+	'FFFE0000'	=> 'utf-32le',
+	'FEFF'		=> 'utf-16be',
+	'FFFE'		=> 'utf-16le',
+    );
+
+    sub _get_ppi_encoding {
+	my ( $elem ) = @_;
+
+	my $doc = $elem->top()
+	    or return;
+
+	$cached_doc
+	    and $doc == $cached_doc
+	    and return $cached_encoding;
+
+	my $bom = $doc->first_element()
+	    or return;
+
+	Scalar::Util::weaken( $cached_doc = $doc );
+
+	if ( $bom->isa( 'PPI::Token::BOM' ) ) {
+	    return ( $cached_encoding = $known_bom{
+		uc unpack 'H*', $bom->content() } );
+	}
+
+	$cached_encoding = undef;
+
+	foreach my $use (
+	    @{ $doc->find( 'PPI::Statement::Include' ) || [] }
+	) {
+	    'use' eq $use->type()
+		or next;
+	    defined( my $module = $use->module() )
+		or next;
+	    'utf8' eq $module
+		or next;
+	    $cached_encoding = 'utf-8';
+	    last;
+	}
+
+	return $cached_encoding;
+
+    }
+
+}
+
 
 # This subroutine was created in an attempt to simplify control flow.
 # Argument 2 (from 0) is not unpacked because the caller needs to see
@@ -465,9 +535,14 @@ sub _link_elems {
 }
 
 sub _stringify_source {
-    my ( $string, %opt ) = @_;
+    my ( $self, $string, %opt ) = @_;
 
     if ( Scalar::Util::blessed( $string ) ) {
+
+	$string->isa( 'PPI::Element' )
+	    or return;
+
+	my $encoding = _get_ppi_encoding( $string );
 
 	foreach my $class ( qw{
 	    PPI::Token::Quote
@@ -476,13 +551,18 @@ sub _stringify_source {
 	    PPI::Token::QuoteLike::Readline
 	} ) {
 	    $string->isa( $class )
-		and return $opt{test} ? 1 : $string->content();
+		or next;
+	    $opt{test}
+		and return 1;
+	    return $self->__decode( $string->content(), $encoding );
 	}
 
 	if ( $string->isa( 'PPI::Token::HereDoc' ) ) {
-	    return $opt{test} ? 1 :
-	    join( '', $string->content(), "\n", $string->heredoc(),
-		$string->terminator(), "\n" );
+	    $opt{test}
+		and return 1;
+	    return join "\n",
+		map { $self->__decode( $string->$_(), $encoding ) }
+		qw{ content heredoc terminator };
 	}
 
 	return;
@@ -578,6 +658,9 @@ Supported arguments are:
 This is the encoding of the C<$source>. If this is specified as
 something other than C<undef>, the C<$source> will be decoded before
 processing.
+
+If the C<$source> is a C<PPI::Element>, this encoding is used only if
+the document has neither a byte order mark or C<'use utf8'>.
 
 =item postderef
 

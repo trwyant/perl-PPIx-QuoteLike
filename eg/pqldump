@@ -15,9 +15,15 @@ our $VERSION = '0.000_007';
 my %opt;
 
 GetOptions( \%opt,
-    qw{ files! test! trace! variables! },
+    qw{ encoding=s files! test! trace! variables! },
     help => sub { pod2usage( { -verbose => 2 } ) },
 ) or pod2usage( { -verbose => 0 } );
+
+if ( defined $opt{encoding} ) {
+    binmode STDOUT, ":encoding($opt{encoding})";
+} else {
+    binmode STDOUT, ":encoding{utf-8}";
+}
 
 $opt{file}
     and $opt{test}
@@ -65,7 +71,10 @@ EOD
 
 foreach my $elem ( @arg ) {
 
-    my $obj = PPIx::QuoteLike->new( $elem, trace => $opt{trace} )
+    my $obj = PPIx::QuoteLike->new( $elem,
+	encoding	=> $opt{encoding},
+	trace		=> $opt{trace},
+    )
 	or do {
 	warn "$elem not handled by PPI::QuoteLike\n";
 	next;
@@ -217,6 +226,14 @@ pqldump - Dump a quotelike thing
  pqldump -version
 
 =head1 OPTIONS
+
+=head2 -encoding
+
+ -encoding utf-8
+
+This option specifies the encoding of the output, and of the input data
+where it can not otherwise be determined. If not specified, the output
+is in utf-8.
 
 =head2 -files
 
