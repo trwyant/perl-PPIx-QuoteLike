@@ -22,7 +22,7 @@ GetOptions( \%opt,
 if ( defined $opt{encoding} ) {
     binmode STDOUT, ":encoding($opt{encoding})";
 } else {
-    binmode STDOUT, ":encoding{utf-8}";
+    binmode STDOUT, ":encoding(utf-8)";
 }
 
 $opt{file}
