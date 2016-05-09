@@ -1,3 +1,6 @@
+0.000_009	2016-05-09	T. R. Wyant
+  Fix problems with here documents introduced in 0.000_008.
+
 0.000_008	2016-05-09	T. R. Wyant
   Support new() argument 'encoding'
     This includes determining the proper encoding for PPI, with the
