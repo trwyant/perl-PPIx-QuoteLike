@@ -1,3 +1,8 @@
+0.000_008	2016-05-09	T. R. Wyant
+  Support new() argument 'encoding'
+    This includes determining the proper encoding for PPI, with the
+    encoding argument being used as default if this can not be done.
+
 0.000_007	2016-05-01	T. R. Wyant
   Better bracket stripping in ppi().
     The problem here was that it was incorrectly changing '@{$x[$i]}' to

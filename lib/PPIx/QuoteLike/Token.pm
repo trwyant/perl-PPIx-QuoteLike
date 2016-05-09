@@ -7,7 +7,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '0.000_007';
+our $VERSION = '0.000_008';
 
 # Private to this package.
 sub __new {
