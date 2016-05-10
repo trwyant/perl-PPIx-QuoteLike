@@ -542,8 +542,6 @@ sub _stringify_source {
 	$string->isa( 'PPI::Element' )
 	    or return;
 
-	my $encoding = _get_ppi_encoding( $string );
-
 	foreach my $class ( qw{
 	    PPI::Token::Quote
 	    PPI::Token::QuoteLike::Backtick
@@ -554,14 +552,29 @@ sub _stringify_source {
 		or next;
 	    $opt{test}
 		and return 1;
+
+	    my $encoding = _get_ppi_encoding( $string );
+	    if ( defined $encoding ) {
+		warn "Debug - Encoding '$encoding' on $string ";
+	    } elsif ( defined $self->{encoding} ) {
+		warn "Debug - Default encoding '$self->{encoding}' on $string ";
+	    }
 	    return $self->__decode( $string->content(), $encoding );
 	}
 
 	if ( $string->isa( 'PPI::Token::HereDoc' ) ) {
 	    $opt{test}
 		and return 1;
+
+	    my $encoding = _get_ppi_encoding( $string );
+	    if ( defined $encoding ) {
+		warn "Debug - Encoding '$encoding' on $string ";
+	    } elsif ( defined $self->{encoding} ) {
+		warn "Debug - Default encoding '$self->{encoding}' on $string ";
+	    }
 	    my $content = $self->__decode( $string->content(), $encoding );
-	    my $heredoc = $self->__decode( $string->heredoc(), $encoding );
+	    my $heredoc = $self->__decode(
+		join( '', $string->heredoc() ), $encoding );
 	    my $terminator = $self->__decode(
 		$string->terminator(), $encoding );
 	    return "$content\n$heredoc$terminator\n";
