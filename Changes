@@ -1,3 +1,6 @@
+0.000_011	2016-05-10	T. R. Wyant
+  Remove debug output left in 0.000_010.
+
 0.000_010	2016-05-10	T. R. Wyant
   Fix PPI::Token::HeredDoc processing error introduced in 0.000_008.
 
