@@ -14,10 +14,14 @@ our @EXPORT_OK = qw{
     VARIABLE_RE
 };
 
-use constant VARIABLE_RE => qr<
+# Match the name of a variable. The user of this needs to anchor it
+# right after the sigil. The line noise is [[:punct:]] as documented in
+# perlrecharclass, less anything that needs to be excluded (currently
+# only '@').
+use constant VARIABLE_RE => qr/
 	[[:alpha:]_]\w* (?: :: [[:alpha:]_] \w* )* |
-	[[:punct:]]
-    >smx;
+	[-!"#\$%&'()*+,.\/:;<=>?[\\\]^_`{|}~]
+    /smx;
 
 1;
 

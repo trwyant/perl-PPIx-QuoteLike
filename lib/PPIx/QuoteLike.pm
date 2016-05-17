@@ -428,57 +428,73 @@ sub __decode {
 # This subroutine was created in an attempt to simplify control flow.
 # Argument 2 (from 0) is not unpacked because the caller needs to see
 # the side effects of matches made on it.
-sub _interpolation {	## no critic (RequireArgUnpacking)
-    my ( $self, $sigil ) = @_;
 
-    if ( $_[2] =~ m/ \G (?= \{ ) /smxgc ) {
-	my $delim_re = _match_enclosed( qw< { > );
-	$_[2] =~ m/ \G ( $delim_re ) /smxgc
-	    and return PPIx::QuoteLike::Token::Interpolation->__new(
-		content	=> "$sigil$1",
+{
+
+    my %special = (
+	'$$'	=> sub {	# Process ID.
+	    my ( $content ) = @_;
+	    return PPIx::QuoteLike::Token::Interpolation->__new(
+		content	=> $content,
 	    );
-	$_[2] =~ m/ \G ( .* ) /smxgc
-	    and return $self->_unknown( "$sigil$1", MISMATCHED_DELIM );
-	confess 'Failed to match /./';
-    }
+	},
+	'@'	=> sub {	# Called if we find '@@'.
+	    my ( $content ) = @_;
+	    return PPIx::QuoteLike::Token::String->__new(
+		content	=> $content,
+	    );
+	},
+    );
 
-    if ( $_[2] =~ m< \G ( @{[ VARIABLE_RE ]} ) >smxgco
-    ) {
-	my $interp = "$sigil$1";
-	while ( $_[2] =~ m/ \G  ( (?: -> )? ) (?= ( [[{] ) ) /smxgc ) {	# }]
-	    my $lead_in = $1;
-	    my $delim_re = _match_enclosed( $2 );
-	    if ( $_[2] =~ m/ \G ( $delim_re ) /smxgc ) {
-		$interp .= "$lead_in$1";
-	    } else {
-		$_[2] =~ m/ ( .* ) /smxgc;
-		return (
-		    PPIx::QuoteLike::Token::Interpolation->__new(
-			content	=> $interp,
-		    ),
-		    $self->_unknown( "$1", MISMATCHED_DELIM ),
+    sub _interpolation {	## no critic (RequireArgUnpacking)
+	my ( $self, $sigil ) = @_;
+
+	if ( $_[2] =~ m/ \G (?= \{ ) /smxgc ) {
+	    my $delim_re = _match_enclosed( qw< { > );
+	    $_[2] =~ m/ \G ( $delim_re ) /smxgc
+		and return PPIx::QuoteLike::Token::Interpolation->__new(
+		    content	=> "$sigil$1",
 		);
-	    }
+	    $_[2] =~ m/ \G ( .* ) /smxgc
+		and return $self->_unknown( "$sigil$1", MISMATCHED_DELIM );
+	    confess 'Failed to match /./';
 	}
 
-	# Postfix dereferencing
-	$self->postderef()
-	    and $_[2] =~ m/ \G ( -> (?: \$ \# | [\$\@] ) [*] ) /smxgc
-	    and $interp .= $1;
+	if ( $_[2] =~ m< \G ( @{[ VARIABLE_RE ]} ) >smxgco
+	) {
+	    my $interp = "$sigil$1";
+	    while ( $_[2] =~ m/ \G  ( (?: -> )? ) (?= ( [[{] ) ) /smxgc ) {	# }]
+		my $lead_in = $1;
+		my $delim_re = _match_enclosed( $2 );
+		if ( $_[2] =~ m/ \G ( $delim_re ) /smxgc ) {
+		    $interp .= "$lead_in$1";
+		} else {
+		    $_[2] =~ m/ ( .* ) /smxgc;
+		    return (
+			PPIx::QuoteLike::Token::Interpolation->__new(
+			    content	=> $interp,
+			),
+			$self->_unknown( "$1", MISMATCHED_DELIM ),
+		    );
+		}
+	    }
 
-	return PPIx::QuoteLike::Token::Interpolation->__new(
-	    content	=> $interp,
-	);
+	    # Postfix dereferencing
+	    $self->postderef()
+		and $_[2] =~ m/ \G ( -> (?: \$ \# | [\$\@] ) [*] ) /smxgc
+		and $interp .= $1;
+
+	    return PPIx::QuoteLike::Token::Interpolation->__new(
+		content	=> $interp,
+	    );
+	}
+
+	my $code = $special{$sigil}
+	    or return $self->_unknown( $sigil, 'Sigil without interpolation' );
+
+	return $code->( $sigil );
+
     }
-
-    # Process ID
-    if ( '$$' eq $sigil ) {
-	return PPIx::QuoteLike::Token::Interpolation->__new(
-	    content	=> $sigil,
-	);
-    }
-
-    return $self->_unknown( $sigil, 'Sigil without interpolation' );
 
 }
 

@@ -697,6 +697,61 @@ EOD
     }
 }
 
+$obj = PPIx::QuoteLike->new( q{"@@x"} );
+if ( ok $obj, q{Able to parse "@@x"} ) {
+    cmp_ok $obj->failures(), '==', 0, q{Failures parsing "@@x"};
+    cmp_ok $obj->interpolates(), '==', 1, q{Does "@@x" interpolate};
+    is $obj->content(), q{"@@x"}, q{Can recover "@@x"};
+    is $obj->__get_value( 'type' ), q{}, q{Type of "@@x"};
+    is $obj->delimiters(), q{""}, q{Delimiters of "@@x"};
+    is $obj->__get_value( 'start' ), q{"}, q{Start delimiter of "@@x"};
+    is $obj->__get_value( 'finish' ), q{"}, q{Finish delimiter of "@@x"};
+    is $obj->encoding(), undef, q{"@@x" encoding};
+    if ( eval { require PPI::Document; 1 } ) {
+	is_deeply [ sort $obj->variables() ],
+	    [ qw{ @x } ],
+	    q{"@@x" interpolated variables};
+    }
+    cmp_ok $obj->postderef(), '==', 1, q{"@@x" postderef};
+    cmp_ok scalar $obj->elements(), '==', 5,
+	q{Number of elements of "@@x"};
+    cmp_ok scalar $obj->children(), '==', 2,
+	q{Number of children of "@@x"};
+    if ( my $kid = $obj->child( 0 ) ) {
+	ok $kid->isa( 'PPIx::QuoteLike::Token::String' ),
+	    q{"@@x" child 0 class};
+	is $kid->content(), q{@},
+	    q{"@@x" child 0 content};
+	is $kid->error(), undef,
+	    q{"@@x" child 0 error};
+	cmp_ok $kid->parent(), '==', $obj,
+	    q{"@@x" child 0 parent};
+	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 0 - 1 ),
+	    q{"@@x" child 0 previous sibling};
+	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
+	    q{"@@x" child 0 next sibling};
+    }
+    if ( my $kid = $obj->child( 1 ) ) {
+	ok $kid->isa( 'PPIx::QuoteLike::Token::Interpolation' ),
+	    q{"@@x" child 1 class};
+	is $kid->content(), q{@x},
+	    q{"@@x" child 1 content};
+	is $kid->error(), undef,
+	    q{"@@x" child 1 error};
+	cmp_ok $kid->parent(), '==', $obj,
+	    q{"@@x" child 1 parent};
+	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 1 - 1 ),
+	    q{"@@x" child 1 previous sibling};
+	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 1 + 1 ),
+	    q{"@@x" child 1 next sibling};
+	if ( eval { require PPI::Document; 1 } ) {
+	    is_deeply [ sort $kid->variables() ],
+		[ qw{ @x } ],
+		q{"@@x" child 1 interpolated variables};
+	}
+    }
+}
+
 done_testing;
 
 sub PPIx::QuoteLike::__get_value {
