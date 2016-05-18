@@ -36,7 +36,7 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
     my $match_dq = _match_enclosed( qw< " > );
 
     sub new {	## no critic (RequireArgUnpacking)
-	my ( $class, $string, %arg ) = @_;
+	my ( $class, $source, %arg ) = @_;
 
 	my @children;
 
@@ -48,12 +48,12 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 	    encoding	=> $arg{encoding},
 	    failures	=> 0,
 	    postderef	=> ( $arg{postderef} ? 1 : 0 ),
-	    source	=> $string,
+	    source	=> $source,
 	};
 
 	bless $self, ref $class || $class;
 
-	defined( $string = $self->_stringify_source( $string ) )
+	defined( my $string = $self->_stringify_source( $source ) )
 	    or return;
 
 	my ( $type, $gap, $content, $end_delim, $start_delim );
@@ -81,11 +81,20 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 	    $arg{trace}
 		and warn "Initial match '$type$start_delim$gap'\n";
 	    $self->{interpolates} = $start_delim !~ m/ \A ' /smx;
-	    $end_delim = _unquote( $start_delim );
-	    $string =~ m/ \G ( .*? ) ^ \Q$end_delim\E \n /smxgc
-		or return $self->_link_elems(
-		$self->_unknown( $string, MISMATCHED_DELIM ) );
-	    $content = $1;
+	    if ( ref $source ) {
+		my $encoding = _get_ppi_encoding( $source );
+		$content = join '', map {
+		    $self->__decode( $_, $encoding ) } $source->heredoc();
+		$end_delim = $self->__decode(
+		    $source->terminator(), $encoding );
+		chomp $end_delim;
+	    } else {
+		$end_delim = _unquote( $start_delim );
+		$string =~ m/ \G ( .*? ) ^ \Q$end_delim\E \n /smxgc
+		    or return $self->_link_elems(
+		    $self->_unknown( $string, MISMATCHED_DELIM ) );
+		$content = $1;
+	    }
 	    $self->{start} = [
 		PPIx::QuoteLike::Token::Delimiter->__new(
 		    content	=> $start_delim,
@@ -578,12 +587,7 @@ sub _stringify_source {
 		and return 1;
 
 	    my $encoding = _get_ppi_encoding( $string );
-	    my $content = $self->__decode( $string->content(), $encoding );
-	    my $heredoc = $self->__decode(
-		join( '', $string->heredoc() ), $encoding );
-	    my $terminator = $self->__decode(
-		$string->terminator(), $encoding );
-	    return "$content\n$heredoc$terminator\n";
+	    return $self->__decode( $string->content(), $encoding ) .  "\n";
 	}
 
 	return;
