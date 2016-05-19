@@ -1,3 +1,7 @@
+0.000_014	2016-05-19	T. R. Wyant
+  Have the ppi() method understand $${foo} as a dereference of $foo, not
+    as element {foo} of %$.
+
 0.000_013	2016-05-18	T. R. Wyant
   Correct handling of PPI::Token::HereDoc
 
