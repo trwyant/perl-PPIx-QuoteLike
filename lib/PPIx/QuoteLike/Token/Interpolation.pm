@@ -15,7 +15,8 @@ our $VERSION = '0.000_013';
 sub ppi {
     my ( $self ) = @_;
     ( my $content = $self->content() ) =~
-	s/ \A ( [\$\@] \#? ) \{ ( @{[ VARIABLE_RE ]} ) \} \z /$1$2/smxo;
+	s/ \A ( [\$\@] (?: \# \$? | \$* ) )
+	\{ ( @{[ VARIABLE_RE ]} ) \} \z /$1$2/smxo;
     require PPI::Document;
     return PPI::Document->new( \$content, readonly => 1 )
 }
