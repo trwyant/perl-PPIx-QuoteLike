@@ -1,3 +1,10 @@
+0.000_015	2016-05-29	T. R. Wyant
+  "@*" is not an interpolation. That is, it is the same as '@*' because
+    there is no such punctuation variable as @*.
+
+    Add -ppi to eg/pqldump. This option causes the PPI parse of any
+      interpolations to be displayed.
+
 0.000_014	2016-05-19	T. R. Wyant
   Have the ppi() method understand $${foo} as a dereference of $foo, not
     as element {foo} of %$.
@@ -6,7 +13,8 @@
   Correct handling of PPI::Token::HereDoc
 
 0.000_012	2016-05-17	T. R. Wyant
-  "@@" is not an interpolation.
+  "@@" is not an interpolation. That is, it is the same as '@@' because
+    there is no such punctuation variable as @@.
 
 0.000_011	2016-05-10	T. R. Wyant
   Remove debug output left in 0.000_010.
