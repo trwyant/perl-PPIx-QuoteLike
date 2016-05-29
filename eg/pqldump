@@ -10,12 +10,12 @@ use Pod::Usage;
 use PPIx::QuoteLike;
 use Scalar::Util qw{ looks_like_number };
 
-our $VERSION = '0.000_014';
+our $VERSION = '0.000_014a';
 
 my %opt;
 
 GetOptions( \%opt,
-    qw{ encoding=s files! test! trace! variables! },
+    qw{ encoding=s files! ppi! test! trace! variables! },
     help => sub { pod2usage( { -verbose => 2 } ) },
 ) or pod2usage( { -verbose => 0 } );
 
@@ -76,7 +76,7 @@ foreach my $elem ( @arg ) {
 	trace		=> $opt{trace},
     )
 	or do {
-	warn "$elem not handled by PPI::QuoteLike\n";
+	warn "$elem not handled by PPIx::QuoteLike\n";
 	next;
     };
 
@@ -163,7 +163,8 @@ EOD
 	    qw{ failures interpolates} );
 	foreach my $kid ( $obj->children() ) {
 	    print '  ', join "\t", ref $kid, quote( $kid->content() ),
-		format_attr( $kid, 'error' ), variables( $kid );
+		format_attr( $kid, 'error' ), variables( $kid ), ppi(
+		    $kid );
 
 	}
     }
@@ -211,6 +212,19 @@ __END_OF_HERE_DOCUMENT
     return "'$val'";
 }
 
+sub ppi {
+    my ( $elem ) = @_;
+
+    $opt{ppi}
+	and $elem->can( 'ppi' )
+	or return;
+
+    require PPI::Dumper;
+    my $dumper = PPI::Dumper->new( $elem->ppi() );
+
+    return $dumper->string();
+}
+
 sub variables {
     my ( $elem ) = @_;
 
@@ -220,6 +234,7 @@ sub variables {
 
     return join ',', sort $elem->variables();
 }
+
 __END__
 
 =head1 TITLE
@@ -252,6 +267,11 @@ analyzed. Otherwise the arguments are literals.
 
 This option displays the documentation for this script. The script then
 exits.
+
+=head2 -ppi
+
+If this option is asserted, the PPI parse of any interpolations will be
+dumped.
 
 =head2 -test
 
