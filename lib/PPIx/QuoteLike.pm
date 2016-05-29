@@ -180,6 +180,25 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 		}
 	    }
 
+	    # We might have consecutive strings if _interpolation()
+	    # generated a string rather than an interpolation. Merge
+	    # these.
+	    my @rslt;
+	    foreach my $elem ( @children ) {
+		if ( $elem->isa( 'PPIx::QuoteLike::Token::String' ) &&
+		    @rslt &&
+		    $rslt[-1]->isa( 'PPIx::QuoteLike::Token::String' )
+		) {
+		    push @rslt, PPIx::QuoteLike::Token::String->__new(
+			content	=> join( '', map { $_->content() } pop
+			    @rslt, $elem ),
+		    );
+		} else {
+		    push @rslt, $elem;
+		}
+	    }
+	    @children = @rslt;
+
 	} else {
 
 	    length $content

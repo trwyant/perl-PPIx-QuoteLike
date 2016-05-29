@@ -60,6 +60,8 @@ qx{${foo}bar}
 "foo@{[ qq<$bar$baz> ]}buzz"
 "$foo::$bar"
 "@{$x[$i]}"
+"@@x"
+"x@*y"
 EOD
     << 'END OF DATA',
 << "EOD"

@@ -752,6 +752,42 @@ if ( ok $obj, q{Able to parse "@@x"} ) {
     }
 }
 
+$obj = PPIx::QuoteLike->new( q{"x@*y"} );
+if ( ok $obj, q{Able to parse "x@*y"} ) {
+    cmp_ok $obj->failures(), '==', 0, q{Failures parsing "x@*y"};
+    cmp_ok $obj->interpolates(), '==', 1, q{Does "x@*y" interpolate};
+    is $obj->content(), q{"x@*y"}, q{Can recover "x@*y"};
+    is $obj->__get_value( 'type' ), q{}, q{Type of "x@*y"};
+    is $obj->delimiters(), q{""}, q{Delimiters of "x@*y"};
+    is $obj->__get_value( 'start' ), q{"}, q{Start delimiter of "x@*y"};
+    is $obj->__get_value( 'finish' ), q{"}, q{Finish delimiter of "x@*y"};
+    is $obj->encoding(), undef, q{"x@*y" encoding};
+    if ( eval { require PPI::Document; 1 } ) {
+	is_deeply [ sort $obj->variables() ],
+	    [ qw{  } ],
+	    q{"x@*y" interpolated variables};
+    }
+    cmp_ok $obj->postderef(), '==', 1, q{"x@*y" postderef};
+    cmp_ok scalar $obj->elements(), '==', 4,
+	q{Number of elements of "x@*y"};
+    cmp_ok scalar $obj->children(), '==', 1,
+	q{Number of children of "x@*y"};
+    if ( my $kid = $obj->child( 0 ) ) {
+	ok $kid->isa( 'PPIx::QuoteLike::Token::String' ),
+	    q{"x@*y" child 0 class};
+	is $kid->content(), q{x@*y},
+	    q{"x@*y" child 0 content};
+	is $kid->error(), undef,
+	    q{"x@*y" child 0 error};
+	cmp_ok $kid->parent(), '==', $obj,
+	    q{"x@*y" child 0 parent};
+	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 0 - 1 ),
+	    q{"x@*y" child 0 previous sibling};
+	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
+	    q{"x@*y" child 0 next sibling};
+    }
+}
+
 done_testing;
 
 sub PPIx::QuoteLike::__get_value {
