@@ -1,3 +1,6 @@
+0.000_016	2016-05-29	T. R. Wyant
+  Recognize "$@" as a use of variable $@.
+
 0.000_015	2016-05-29	T. R. Wyant
   "@*" is not an interpolation. That is, it is the same as '@*' because
     there is no such punctuation variable as @*.
