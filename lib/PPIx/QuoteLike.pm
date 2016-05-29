@@ -466,6 +466,14 @@ sub __decode {
 		content	=> $content,
 	    );
 	},
+	'$'	=> sub {	# Called if we find (e.g.) '$@'
+	    my ( $content ) = @_;
+	    $_[1] =~ m/ \G ( [\@] ) /smxgc
+		or return;
+	    return PPIx::QuoteLike::Token::Interpolation->__new(
+		content	=> "$content$1",
+	    );
+	},
 	'@'	=> sub {	# Called if we find '@@'.
 	    my ( $content ) = @_;
 	    return PPIx::QuoteLike::Token::String->__new(
@@ -517,11 +525,12 @@ sub __decode {
 	    );
 	}
 
-	my $code = $special{$sigil}
+	my $code;
+	$code = $special{$sigil}
+	    and my $elem = $code->( $sigil, $_[2] )
 	    or return $self->_unknown( $sigil, 'Sigil without interpolation' );
 
-	return $code->( $sigil );
-
+	return $elem;
     }
 
 }
