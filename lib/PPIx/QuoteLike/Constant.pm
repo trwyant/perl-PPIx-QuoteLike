@@ -20,6 +20,7 @@ our @EXPORT_OK = qw{
 # only '@' and '*').
 use constant VARIABLE_RE => qr/
 	[[:alpha:]_]\w* (?: :: [[:alpha:]_] \w* )* |
+	[0-9]+ |
 	[-!"#\$%&'()+,.\/:;<=>?[\\\]^_`{|}~]
     /smx;
 
