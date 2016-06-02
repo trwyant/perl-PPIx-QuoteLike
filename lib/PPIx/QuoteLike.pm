@@ -34,6 +34,7 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 {
     my $match_sq = _match_enclosed( qw< ' > );
     my $match_dq = _match_enclosed( qw< " > );
+    my $match_bt = _match_enclosed( qw< ` > );
 
     sub new {	## no critic (RequireArgUnpacking)
 	my ( $class, $source, %arg ) = @_;
@@ -75,8 +76,11 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 	    ( $start_delim, $content, $end_delim ) = _chop( $1 );
 
 	# here doc
+	# Note that the regexp used here is slightly wrong in that white
+	# space between the '<<' and the termination string is not
+	# allowed if the termination string is not quoted in some way.
 	} elsif ( $string =~ m/ \A \s* ( << ) ( \s* )
-	    ( \w+ | $match_sq | $match_dq ) \n /smxgc ) {
+	    ( \w+ | $match_sq | $match_dq | $match_bt ) \n /smxgc ) {
 	    ( $type, $gap, $start_delim ) = ( $1, $2, $3 );
 	    $arg{trace}
 		and warn "Initial match '$type$start_delim$gap'\n";
