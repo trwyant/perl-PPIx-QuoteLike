@@ -1,3 +1,6 @@
+0.000_018	2016-06-02	T. R. Wyant
+  Handle here docs quoted by back ticks.
+
 0.000_017	2016-05-31	T. R. Wyant
   Recognize numeric variables (e.g. $0)
 
@@ -8,7 +11,7 @@
   "@*" is not an interpolation. That is, it is the same as '@*' because
     there is no such punctuation variable as @*.
 
-    Add -ppi to eg/pqldump. This option causes the PPI parse of any
+  Add -ppi to eg/pqldump. This option causes the PPI parse of any
       interpolations to be displayed.
 
 0.000_014	2016-05-19	T. R. Wyant
