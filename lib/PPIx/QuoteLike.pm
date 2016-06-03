@@ -572,6 +572,7 @@ sub _link_elems {
 		    \Q$left\E
 		    (?:
 			(?> [^\\\Q$left$right\E]+ ) |
+			(?> \$ [\Q$left$right\E] ) |
 			(?> \\ . ) |
 			(?-1)
 		    )*
