@@ -1,3 +1,6 @@
+0.000_019	2016-06-03	T. R. Wyant
+  Correctly parse "$x[$[]" as using @x and $[.
+
 0.000_018	2016-06-02	T. R. Wyant
   Handle here docs quoted by back ticks.
 

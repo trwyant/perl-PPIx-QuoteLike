@@ -9,7 +9,7 @@ use Carp;
 
 use base qw{ PPIx::QuoteLike::Token };
 
-our $VERSION = '0.000_018';
+our $VERSION = '0.000_019';
 
 1;
 
