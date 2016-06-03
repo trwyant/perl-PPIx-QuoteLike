@@ -829,6 +829,61 @@ if ( ok $obj, q{Able to parse "$@"} ) {
     }
 }
 
+$obj = PPIx::QuoteLike->new( q/"${x}[0]"/ );
+if ( ok $obj, q{Able to parse "${x}[0]"} ) {
+    cmp_ok $obj->failures(), '==', 0, q{Failures parsing "${x}[0]"};
+    cmp_ok $obj->interpolates(), '==', 1, q{Does "${x}[0]" interpolate};
+    is $obj->content(), q/"${x}[0]"/, q{Can recover "${x}[0]"};
+    is $obj->__get_value( 'type' ), q{}, q{Type of "${x}[0]"};
+    is $obj->delimiters(), q{""}, q{Delimiters of "${x}[0]"};
+    is $obj->__get_value( 'start' ), q{"}, q{Start delimiter of "${x}[0]"};
+    is $obj->__get_value( 'finish' ), q{"}, q{Finish delimiter of "${x}[0]"};
+    is $obj->encoding(), undef, q{"${x}[0]" encoding};
+    if ( eval { require PPI::Document; 1 } ) {
+	is_deeply [ sort $obj->variables() ],
+	    [ qw{ $x } ],
+	    q{"${x}[0]" interpolated variables};
+    }
+    cmp_ok $obj->postderef(), '==', 1, q{"${x}[0]" postderef};
+    cmp_ok scalar $obj->elements(), '==', 5,
+	q{Number of elements of "${x}[0]"};
+    cmp_ok scalar $obj->children(), '==', 2,
+	q{Number of children of "${x}[0]"};
+    if ( my $kid = $obj->child( 0 ) ) {
+	ok $kid->isa( 'PPIx::QuoteLike::Token::Interpolation' ),
+	    q{"${x}[0]" child 0 class};
+	is $kid->content(), q/${x}/,
+	    q{"${x}[0]" child 0 content};
+	is $kid->error(), undef,
+	    q{"${x}[0]" child 0 error};
+	cmp_ok $kid->parent(), '==', $obj,
+	    q{"${x}[0]" child 0 parent};
+	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 0 - 1 ),
+	    q{"${x}[0]" child 0 previous sibling};
+	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
+	    q{"${x}[0]" child 0 next sibling};
+	if ( eval { require PPI::Document; 1 } ) {
+	    is_deeply [ sort $kid->variables() ],
+		[ qw{ $x } ],
+		q{"${x}[0]" child 0 interpolated variables};
+	}
+    }
+    if ( my $kid = $obj->child( 1 ) ) {
+	ok $kid->isa( 'PPIx::QuoteLike::Token::String' ),
+	    q{"${x}[0]" child 1 class};
+	is $kid->content(), q{[0]},
+	    q{"${x}[0]" child 1 content};
+	is $kid->error(), undef,
+	    q{"${x}[0]" child 1 error};
+	cmp_ok $kid->parent(), '==', $obj,
+	    q{"${x}[0]" child 1 parent};
+	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 1 - 1 ),
+	    q{"${x}[0]" child 1 previous sibling};
+	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 1 + 1 ),
+	    q{"${x}[0]" child 1 next sibling};
+    }
+}
+
 done_testing;
 
 sub PPIx::QuoteLike::__get_value {

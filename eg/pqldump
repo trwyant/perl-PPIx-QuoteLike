@@ -63,6 +63,7 @@ qx{${foo}bar}
 "@@x"
 "x@*y"
 "$@"
+"${x}[0]"
 EOD
     << 'END OF DATA',
 << "EOD"
