@@ -119,14 +119,17 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 	# ``, '', "", <>
 	} elsif ( $string =~ m/ \A \s* (?= ( [`'"<] ) ) /smxgc ) {
 	    ( $type, $gap, $start_delim ) = ( '', '', $1 );
+	    $content = substr $string, (
+		pos $string || 0 ) + length $start_delim;;
 	    $arg{trace}
 		and warn "Initial match '$type$start_delim'\n";
 	    $self->{interpolates} = q<'> ne $start_delim;
-	    my $delim_re = _match_enclosed( $start_delim );
-	    $string =~ m/ \G ( $delim_re ) /smxgc
-		or return $self->_link_elems(
-		$self->_unknown( $string, MISMATCHED_DELIM ) );
-	    ( $start_delim, $content, $end_delim ) = _chop( $1 );
+	    $end_delim = _matching_delimiter( $start_delim );
+	    if ( $end_delim eq substr $content, -1 ) {
+		chop $content;
+	    } else {
+		$end_delim = '';
+	    }
 
 	# Something we do not recognize
 	} else {
@@ -589,6 +592,13 @@ sub _link_elems {
 		) >smx
 	    );
 	}
+    }
+
+    sub _matching_delimiter {
+	my ( $left ) = @_;
+	my $right = $matching_bracket{$left}
+	    or return $left;
+	return $right;
     }
 }
 
