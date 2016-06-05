@@ -1,3 +1,9 @@
+0.000_020	2016-06-04	T. R. Wyant
+  Make close delimiter optional in ``, '', "", <>. This is needed in
+    case PPI gets confused and parses a quotish entity that way. If
+    testing against CPAN gives reasonable results, do this with the
+    other string-like things.
+
 0.000_019	2016-06-03	T. R. Wyant
   Correctly parse "$x[$[]" as using @x and $[.
 
