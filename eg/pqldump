@@ -8,46 +8,25 @@ use warnings;
 use Getopt::Long 2.33 qw{ :config auto_version };
 use Pod::Usage;
 use PPIx::QuoteLike;
-use Scalar::Util qw{ looks_like_number };
+use Scalar::Util qw{ blessed looks_like_number };
 
 our $VERSION = '0.000_020';
 
-my %opt;
+my %opt = (
+    encoding	=> 'utf-8',
+);
 
 GetOptions( \%opt,
-    qw{ encoding=s files! ppi! test! trace! variables! },
+    qw{ encoding=s ppi! test! trace! variables! },
     help => sub { pod2usage( { -verbose => 2 } ) },
 ) or pod2usage( { -verbose => 0 } );
 
-if ( defined $opt{encoding} ) {
-    binmode STDOUT, ":encoding($opt{encoding})";
-} else {
-    binmode STDOUT, ":encoding(utf-8)";
-}
+binmode STDOUT, ":encoding($opt{encoding})"
+    or die "Failed to set STDOUT to encoding $opt{encoding}: $!\n";
 
-$opt{file}
-    and $opt{test}
-    and die "Can't assert both -file and -test\n";
-
-my @arg;
-
-my @dox;
-
-if ( $opt{files} ) {
-    require PPI::Document;
-    foreach my $fn ( @ARGV ) {
-	my $doc = PPI::Document->new( $fn );
-	foreach my $elem ( @{ $doc->find( 'PPI::Token' ) || [] } ) {
-	    PPIx::QuoteLike->handles( $elem )
-		and push @arg, $elem;
-	}
-	push @dox, $doc;
-    }
-} else {
-    @arg = @ARGV;
-    $opt{test}
-	and not @arg
-	and @arg = ( split( qr{ \n }smx, <<'EOD' ),
+$opt{test}
+    and not @ARGV
+    and @ARGV = ( split( qr{ \n }smx, <<'EOD' ),
 ''
 "foo\"bar"
 q{\Qx}
@@ -71,35 +50,33 @@ EOD
 $foo->{bar}bazzle
 EOD
 END OF DATA
-    );
-}
+);
 
-foreach my $elem ( @arg ) {
+foreach my $arg ( @ARGV ) {
+    foreach my $elem ( _expand_arg( $arg ) ) {
+	my $obj = PPIx::QuoteLike->new( $elem,
+	    encoding	=> $opt{encoding},
+	    trace	=> $opt{trace},
+	) or do {
+	    warn "$elem not handled by PPIx::QuoteLike\n";
+	    next;
+	};
 
-    my $obj = PPIx::QuoteLike->new( $elem,
-	encoding	=> $opt{encoding},
-	trace		=> $opt{trace},
-    )
-	or do {
-	warn "$elem not handled by PPIx::QuoteLike\n";
-	next;
-    };
+	my $strq = quote( my $str = $obj->content() );
 
-    my $strq = quote( my $str = $obj->content() );
+	if ( $opt{test} ) {
+	    my $failures = $obj->failures();
+	    my $interpolates = $obj->interpolates();
+	    my $type = quote( $obj->type() );
+	    my $delimiters = quote( $obj->delimiters() );
+	    my $start = quote( $obj->start() );
+	    my $finish = quote( scalar $obj->finish() );
+	    my $encoding = quote( $obj->encoding() );
+	    my $postderef = quote( $obj->postderef() );
+	    my @children = $obj->children();
+	    my $elements = $obj->elements();
 
-    if ( $opt{test} ) {
-	my $failures = $obj->failures();
-	my $interpolates = $obj->interpolates();
-	my $type = quote( $obj->type() );
-	my $delimiters = quote( $obj->delimiters() );
-	my $start = quote( $obj->start() );
-	my $finish = quote( scalar $obj->finish() );
-	my $encoding = quote( $obj->encoding() );
-	my $postderef = quote( $obj->postderef() );
-	my @children = $obj->children();
-	my $elements = $obj->elements();
-
-	print <<"EOD";
+	    print <<"EOD";
 
 \$obj = PPIx::QuoteLike->new( $strq );
 if ( ok \$obj, q{Able to parse $str} ) {
@@ -122,11 +99,11 @@ if ( ok \$obj, q{Able to parse $str} ) {
     cmp_ok scalar \$obj->children(), '==', @{[ scalar @children ]},
 	q{Number of children of $str};
 EOD
-	my $inx = 0;
-	foreach my $kid ( @children ) {
-	    my $content = quote( $kid->content );
-	    my $error = quote( $kid->error() );
-	    print <<"EOD";
+	    my $inx = 0;
+	    foreach my $kid ( @children ) {
+		my $content = quote( $kid->content );
+		my $error = quote( $kid->error() );
+		print <<"EOD";
     if ( my \$kid = \$obj->child( $inx ) ) {
 	ok \$kid->isa( '@{[ ref $kid ]}' ),
 	    q{$str child $inx class};
@@ -141,37 +118,56 @@ EOD
 	cmp_ok \$kid->next_sibling() || 0, '==', \$obj->__kid( $inx + 1 ),
 	    q{$str child $inx next sibling};
 EOD
-	    if ( $kid->can( 'variables' ) ) {
-		print <<"EOD";
+		if ( $kid->can( 'variables' ) ) {
+		    print <<"EOD";
 	if ( eval { require PPI::Document; 1 } ) {
 	    is_deeply [ sort \$kid->variables() ],
 		[ qw{ @{[ sort $kid->variables() ]} } ],
 		q{$str child $inx interpolated variables};
 	}
 EOD
-	    }
-	    print <<'EOD';
+		}
+		print <<'EOD';
     }
 EOD
-	    $inx++;
+		$inx++;
+	    }
+	    print "}\n";
+
+	} else {
+
+	    local $\ = "\n";
+	    print "\n$str";
+	    my $delim = sprintf '%s%s...%s',
+		map { format_content( $obj, $_ ) }
+		qw{ type start finish };
+	    print join "\t", ref $obj, $delim, format_attr( $obj,
+		qw{ failures interpolates} );
+	    foreach my $kid ( $obj->children() ) {
+		print '  ', join "\t", ref $kid, quote( $kid->content() ),
+		    format_attr( $kid, 'error' ), variables( $kid ), ppi(
+			$kid );
+
+	    }
 	}
-	print "}\n";
+    }
 
-    } else {
+}
 
-	local $\ = "\n";
-	print "\n$str";
-	my $delim = sprintf '%s%s...%s',
-	    map { format_content( $obj, $_ ) }
-	    qw{ type start finish };
-	print join "\t", ref $obj, $delim, format_attr( $obj,
-	    qw{ failures interpolates} );
-	foreach my $kid ( $obj->children() ) {
-	    print '  ', join "\t", ref $kid, quote( $kid->content() ),
-		format_attr( $kid, 'error' ), variables( $kid ), ppi(
-		    $kid );
+{
+    my $doc;
 
-	}
+    sub _expand_arg {
+	my ( $arg ) = @_;
+
+	-e $arg
+	    or return $arg;
+	-f _
+	    or return;
+	require PPI::Document;
+	$doc = PPI::Document->new( $arg, readonly => 1 );
+	return grep { PPIx::QuoteLike->handles( $_ ) }
+	    @{ $doc->find( 'PPI::Token' ) || [] };
     }
 }
 
@@ -249,6 +245,7 @@ pqldump - Dump a quotelike thing
 =head1 SYNOPSIS
 
  pqldump '"foo$bar"'
+ pqldump fubar.pl
  pqldump -help
  pqldump -version
 
@@ -261,12 +258,6 @@ pqldump - Dump a quotelike thing
 This option specifies the encoding of the output, and of the input data
 where it can not otherwise be determined. If not specified, the output
 is in utf-8.
-
-=head2 -files
-
-If this option is asserted, the arguments are taken to be files, which
-are read by L<PPI::Document|PPI::Document> and the appropriate tokens
-analyzed. Otherwise the arguments are literals.
 
 =head2 -help
 
@@ -304,7 +295,10 @@ This option displays the version of this script. The script then exits.
 =head1 DETAILS
 
 This Perl script parses the quote-like expressions given on its command
-line, and dumps the resuls of te parse to standard out.
+line, and dumps the resuls of te parse to standard out. If an argument
+is a path to a normal file, that file is run through L<PPI|/PPI> (which
+must be loadable), and anything that can be dumped will be dumped.
+Otherwise it will be interpreted as a string literal of some sort.
 
 =head1 AUTHOR
 
