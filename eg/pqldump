@@ -10,7 +10,7 @@ use Pod::Usage;
 use PPIx::QuoteLike;
 use Scalar::Util qw{ blessed looks_like_number };
 
-our $VERSION = '0.000_020';
+our $VERSION = '0.000_021';
 
 my %opt = (
     encoding	=> 'utf-8',
