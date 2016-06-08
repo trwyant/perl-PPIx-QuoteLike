@@ -26,8 +26,6 @@ use constant ILLEGAL_FIRST	=>
     'Tokenizer found illegal first characters';
 use constant MISMATCHED_DELIM	=>
     'Tokenizer found mismatched delimiters';
-use constant TRAILING_CRUFT	=>
-    'Trailing characters after expression';
 
 $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 
@@ -63,17 +61,19 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 	    and warn "Initial match of $string\n";
 
 	# q<>, qq<>, qx<>
-	if ( $string =~ m/ \A \s* ( q [qx]? ) ( \s* ) (?= ( \W ) ) /smxgc ) {
+	if ( $string =~ m/ \A \s* ( q [qx]? ) ( \s* ) ( \W ) /smxgc ) {
 	    ( $type, $gap, $start_delim ) = ( $1, $2, $3 );
 	    $arg{trace}
 		and warn "Initial match '$type$start_delim'\n";
 	    $self->{interpolates} = 'qq' eq $type ||
 		'qx' eq $type && q<'> ne $start_delim;
-	    my $delim_re = _match_enclosed( $start_delim );
-	    $string =~ m/ \G ( $delim_re ) /smxgc
-		or return $self->_link_elems(
-		$self->_unknown( $string, MISMATCHED_DELIM ) );
-	    ( $start_delim, $content, $end_delim ) = _chop( $1 );
+	    $content = substr $string, ( pos $string || 0 );
+	    $end_delim = _matching_delimiter( $start_delim );
+	    if ( $end_delim eq substr $content, -1 ) {
+		chop $content;
+	    } else {
+		$end_delim = '';
+	    }
 
 	# here doc
 	# Note that the regexp used here is slightly wrong in that white
@@ -85,19 +85,11 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 	    $arg{trace}
 		and warn "Initial match '$type$start_delim$gap'\n";
 	    $self->{interpolates} = $start_delim !~ m/ \A ' /smx;
-	    if ( ref $source ) {
-		my $encoding = _get_ppi_encoding( $source );
-		$content = join '', map {
-		    $self->__decode( $_, $encoding ) } $source->heredoc();
-		$end_delim = $self->__decode(
-		    $source->terminator(), $encoding );
-		chomp $end_delim;
+	    $content = substr $string, ( pos $string || 0 );
+	    $end_delim = _unquote( $start_delim );
+	    if ( $content =~ s/ ^ \Q$end_delim\E \n? \z //smx ) {
 	    } else {
-		$end_delim = _unquote( $start_delim );
-		$string =~ m/ \G ( .*? ) ^ \Q$end_delim\E \n /smxgc
-		    or return $self->_link_elems(
-		    $self->_unknown( $string, MISMATCHED_DELIM ) );
-		$content = $1;
+		$end_delim = '';
 	    }
 	    $self->{start} = [
 		PPIx::QuoteLike::Token::Delimiter->__new(
@@ -117,13 +109,12 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 	    ];
 
 	# ``, '', "", <>
-	} elsif ( $string =~ m/ \A \s* (?= ( [`'"<] ) ) /smxgc ) {
+	} elsif ( $string =~ m/ \A \s* ( [`'"<] ) /smxgc ) {
 	    ( $type, $gap, $start_delim ) = ( '', '', $1 );
-	    $content = substr $string, (
-		pos $string || 0 ) + length $start_delim;;
 	    $arg{trace}
 		and warn "Initial match '$type$start_delim'\n";
 	    $self->{interpolates} = q<'> ne $start_delim;
+	    $content = substr $string, ( pos $string || 0 );
 	    $end_delim = _matching_delimiter( $start_delim );
 	    if ( $end_delim eq substr $content, -1 ) {
 		chop $content;
@@ -630,7 +621,14 @@ sub _stringify_source {
 		and return 1;
 
 	    my $encoding = _get_ppi_encoding( $string );
-	    return $self->__decode( $string->content(), $encoding ) .  "\n";
+	    my $heredoc = join '',
+		map { $self->__decode( $_, $encoding) }
+		$string->heredoc();
+	    my $terminator = $self->__decode( $string->terminator(),
+		$encoding );
+	    $terminator =~ s/ (?<= \n ) \z /\n/smx;
+	    return $self->__decode( $string->content(), $encoding ) .
+		"\n" . $heredoc . $terminator;
 	}
 
 	return;
@@ -694,12 +692,15 @@ This class supports the following public methods:
  my $str = PPIx::QuoteLike->new( $source, %arg );
 
 This static method parses the argument, and returns a new object
-containing the parse. The C<$source> argument can be either a literal or
+containing the parse. The C<$source> argument can be either a scalar or
 an appropriate L<PPI::Element|PPI::Element> object.
 
-The C<$source> argument will be parsed up to and including the trailing
-delimiter if that can be determined. If the argument is a literal, its
-C<pos()> will be set to the first character after the trailing literal.
+If the C<$source> argument is a scalar, it is presumed to represent a
+quote-like literal of some sort, provided it begins like one. Otherwise
+this method will return nothing. The scalar representation of a here
+document is a multi-line string whose first line consists of the leading
+C< << > and the start delimiter, and whose subsequent lines consist of
+the content of the here document and the end delimiter.
 
 C<PPI> classes that can be handled are
 L<PPI::Token::Quote|PPI::Token::Quote>,
@@ -709,14 +710,7 @@ L<PPI::Token::QuoteLike::Readline|PPI::Token::QuoteLike::Readline>, and
 L<PPI::Token::HereDoc|PPI::Token::HereDoc>. Any other object will cause
 C<new()> to return nothing.
 
-Scalars that can be handled are the equivalents of the above C<PPI>
-classes. If a scalar argument does not look like one of the above, this
-method returns nothing. The scalar representation of a here document is
-a multi-line string whose first line consists of the leading C< << > and
-the start delimiter, and whose subsequent lines consist of the content
-of the here document and the end delimiter.
-
-Additional, optional arguments can be passed as name/value pairs.
+Additional optional arguments can be passed as name/value pairs.
 Supported arguments are:
 
 =over
@@ -728,7 +722,8 @@ something other than C<undef>, the C<$source> will be decoded before
 processing.
 
 If the C<$source> is a C<PPI::Element>, this encoding is used only if
-the document has neither a byte order mark or C<'use utf8'>.
+the document that contains the element has neither a byte order mark nor
+C<'use utf8'>.
 
 =item postderef
 
@@ -775,7 +770,7 @@ delimiters.
 
 This method returns the content of the object. If the original argument
 was a valid Perl string, this should be the same as the
-originally-parsed string as far as its end delimiter.
+originally-parsed string.
 
 =head2 delimiters
 
@@ -783,8 +778,8 @@ originally-parsed string as far as its end delimiter.
 
 This method returns the delimiters of the object, as a string. This will
 be two characters unless the argument to L<new()|/new> was a here
-document or an invalid string. In the latter case the return might be
-anything.
+document, missing its end delimiter, or an invalid string. In the latter
+case the return might be anything.
 
 =head2 elements
 
@@ -853,7 +848,9 @@ object), and a false value otherwise.
      'The string does not interpolate';
 
 This method returns a true value if the parsed string interpolates, and
-a false value if it does not.
+a false value if it does not. This does B<not> indicate whether any
+interpolation actually takes place, only whether the string is
+double-quotish or single-quotish.
 
 =head2 schild
 
