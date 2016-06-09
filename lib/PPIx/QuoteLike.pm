@@ -681,7 +681,9 @@ PPIx::QuoteLike - Parse Perl string literals and string-literal-like things.
 =head1 DESCRIPTION
 
 This Perl class parses Perl string literals and things that are
-reasonably like string literals.
+reasonably like string literals. Its real reason for being is to find
+interpolated variables for L<Perl::Critic|Perl::Critic> policies and
+similar code.
 
 =head1 METHODS
 
