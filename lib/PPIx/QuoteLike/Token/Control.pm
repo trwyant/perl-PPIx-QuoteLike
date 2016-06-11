@@ -11,6 +11,17 @@ use base qw{ PPIx::QuoteLike::Token };
 
 our $VERSION = '0.002';
 
+{
+    # TODO make this a state variable when we can require Perl 5.10.
+    my $introduced = {
+	'\\F'	=> '5.015008',
+    };
+
+    sub __perl_version_introduced {
+	my ( $self ) = @_;
+	return $introduced->{ $self->content() };
+    }
+}
 
 1;
 

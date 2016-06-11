@@ -21,37 +21,61 @@ sub ppi {
     return PPI::Document->new( \$content, readonly => 1 )
 }
 
-sub variables {
-    my ( $self ) = @_;
+{
 
-    require PPIx::QuoteLike;
+    # TODO make this a state varable one we can require Perl 5.10.
+    my $postderef = { map { $_ => 1 } qw{ @* %* } };
 
-    my %var;
+    sub variables {
+	my ( $self ) = @_;
 
-    my $ppi = $self->ppi();
-    foreach my $sym ( @{ $ppi->find( 'PPI::Token::Symbol' ) || [] } ) {
-	$var{ $sym->symbol() } = 1;
-    }
+	require PPIx::QuoteLike;
 
-    foreach my $class ( qw{
-	    PPI::Token::Quote
-	    PPI::Token::QuoteLike::Backtick
-	    PPI::Token::QuoteLike::Command
-	    PPI::Token::QuoteLike::Readline
-	    PPI::Token::HereDoc
-	} ) {
-	foreach my $elem ( @{ $ppi->find( $class ) || [] } ) {
-	    my $ql = PPIx::QuoteLike->new( $elem )
-		or next;
-	    $ql->interpolates()
-		or next;
-	    foreach my $sym ( $ql->variables() ) {
-		$var{ $sym } = 1;
+	my %var;
+
+	my $ppi = $self->ppi();
+	foreach my $sym ( @{ $ppi->find( 'PPI::Token::Symbol' ) || [] } ) {
+	    # The problem we're solving here is that PPI parses postfix
+	    # dereference as though it makes reference to non-existent
+	    # punctuation variables '@*' or '%*'. The following
+	    # statement omits these from output if they are preceded by
+	    # the '->' operator.
+	    my $prev;
+	    $postderef->{ $sym->content() }
+		and $prev = $sym->sprevious_sibling()
+		and $prev->isa( 'PPI::Token::Operator' )
+		and '->' eq $prev->content()
+		and next;
+	    $var{ $sym->symbol() } = 1;
+	}
+
+	foreach my $class ( qw{
+		PPI::Token::Quote
+		PPI::Token::QuoteLike::Backtick
+		PPI::Token::QuoteLike::Command
+		PPI::Token::QuoteLike::Readline
+		PPI::Token::HereDoc
+	    } ) {
+	    foreach my $elem ( @{ $ppi->find( $class ) || [] } ) {
+		my $ql = PPIx::QuoteLike->new( $elem )
+		    or next;
+		$ql->interpolates()
+		    or next;
+		foreach my $sym ( $ql->variables() ) {
+		    $var{ $sym } = 1;
+		}
 	    }
 	}
-    }
 
-    return ( keys %var );
+	return ( keys %var );
+    }
+}
+
+sub __perl_version_introduced {
+    my ( $self ) = @_;
+    $self->content() =~ m/ [\@\$] [*] \z /smx
+	and return '5.019005';
+    return;
 }
 
 1;

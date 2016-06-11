@@ -7,7 +7,8 @@ use warnings;
 
 use Carp;
 use Encode ();
-use PPIx::QuoteLike::Constant qw{ VARIABLE_RE };
+use List::Util ();
+use PPIx::QuoteLike::Constant qw{ MINIMUM_PERL VARIABLE_RE };
 use PPIx::QuoteLike::Token::Control;
 use PPIx::QuoteLike::Token::Delimiter;
 use PPIx::QuoteLike::Token::Interpolation;
@@ -152,7 +153,7 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 	if ( $self->{interpolates} ) {
 	    {	# Single-iteration loop
 
-		if ( $content =~ m/ \G ( \\ [ULulQE] ) /smxgc ) {
+		if ( $content =~ m/ \G ( \\ [ULulQEF] ) /smxgc ) {
 		    push @children, PPIx::QuoteLike::Token::Control->__new(
 			content	=> "$1",		# Remove magic
 		    );
@@ -300,6 +301,28 @@ sub handles {
 sub interpolates {
     my ( $self ) = @_;
     return $self->{interpolates};
+}
+
+sub perl_version_introduced {
+    my ( $self ) = @_;
+    return List::Util::max( grep { defined $_ } MINIMUM_PERL,
+	$self->{perl_version_introduced},
+	map { $_->perl_version_introduced() } $self->elements() );
+}
+
+sub perl_version_removed {
+    my ( $self ) = @_;
+    my $max;
+    foreach my $elem ( $self->elements() ) {
+	if ( defined ( my $ver = $elem->perl_version_removed() ) ) {
+	    if ( defined $max ) {
+		$ver < $max and $max = $ver;
+	    } else {
+		$max = $ver;
+	    }
+	}
+    }
+    return $max;
 }
 
 sub postderef {
@@ -856,6 +879,22 @@ a false value if it does not. This does B<not> indicate whether any
 interpolation actually takes place, only whether the string is
 double-quotish or single-quotish.
 
+=head2 perl_version_introduced
+
+This method returns the maximum value of C<perl_version_introduced>
+returned by any of its elements. In other words, it returns the minimum
+version of Perl under which this quote-like object is valid. If there
+are no elements, 5.000 is returned, since that is the minimum value of
+Perl supported by this package.
+
+=head2 perl_version_removed
+
+This method returns the minimum defined value of C<perl_version_removed>
+returned by any of the quote-like object's elements. In other words, it
+returns the lowest version of Perl in which this object is C<not> valid.
+If there are no elements, or if no element has a defined
+C<perl_version_removed>, C<undef> is returned.
+
 =head2 schild
 
  my $skid = $str->schild( 0 );
@@ -917,6 +956,55 @@ This convenience method returns all interpolated variables. Each is
 returned only once, and they are returned in no particular order. If the
 object does not represent a string that interpolates, nothing is
 returned.
+
+=head1 RESTRICTIONS
+
+By the nature of this module, it is never going to get everything right.
+Many of the known problem areas involve interpolations one way or
+another.
+
+=head2 Changes in Syntax
+
+Sometimes the introduction of new syntax changes the way a string is
+parsed. For example, the C<\F> (fold case) case control was introduced
+in Perl 5.15.8. But it did not represent a syntax error prior to that
+version of Perl, it was simply parsed as C<V>. So
+
+ $ perl -le 'print "Foo\FBar"'
+
+prints "FooFBar" under Perl 5.14.4, but "Foobar" under 5.16.0.
+C<PPIx::QuoteLike> generally assumes the more modern parse in cases like
+this.
+
+=head2 Static Parsing
+
+It is well known that Perl can not be statically parsed. That is, you
+can not completely parse a piece of Perl code without executing that
+same code.
+
+Nevertheless, this class is trying to statically parse quote-like
+things. I do not have any examples of where the parse of a quote-like
+thing would change based on what is interpolated, but neither can I rule
+it out. I<Caveat user>.
+
+=head2 Non-Standard Syntax
+
+There are modules out there that alter the syntax of Perl. If the syntax
+of a regular expression is altered, this module has no way to understand
+that it has been altered, much less to adapt to the alteration. The
+following modules are known to cause problems:
+
+L<Acme::PerlML|Acme::PerlML>, which renders Perl as XML.
+
+L<Data::PostfixDeref|Data::PostfixDeref>, which causes Perl to interpret
+suffixed empty brackets as dereferencing the thing they suffix, and
+which is inconsistent with the postfix dereference syntax introduced in
+5.19.5 and mainstreamed with 5.24.0.
+
+L<Filter::Trigraph|Filter::Trigraph>, which recognizes ANSI C trigraphs,
+allowing Perl to be written in the ISO 646 character set.
+
+L<Perl6::Pugs|Perl6::Pugs>. Enough said.
 
 =head1 SUPPORT
 

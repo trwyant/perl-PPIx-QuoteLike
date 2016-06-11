@@ -11,8 +11,11 @@ use base qw{ Exporter };
 our $VERSION = '0.002';
 
 our @EXPORT_OK = qw{
+    MINIMUM_PERL
     VARIABLE_RE
 };
+
+use constant MINIMUM_PERL	=> '5.000';
 
 # Match the name of a variable. The user of this needs to anchor it
 # right after the sigil. The line noise is [[:punct:]] as documented in
@@ -49,6 +52,12 @@ default.
 =head1 CONSTANTS
 
 The following importable constants are provided:
+
+=head2 MINIMUM_PERL
+
+The minimum version of Perl understood by this parser, as a string. It
+is currently set to C<'5.000'>, since that is the minimum version of
+Perl accessible to the author.
 
 =head2 VARIABLE_RE
 

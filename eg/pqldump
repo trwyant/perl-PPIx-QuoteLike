@@ -17,7 +17,7 @@ my %opt = (
 );
 
 GetOptions( \%opt,
-    qw{ encoding=s ppi! test! trace! variables! },
+    qw{ encoding=s perl! ppi! test! trace! variables! },
     help => sub { pod2usage( { -verbose => 2 } ) },
 ) or pod2usage( { -verbose => 0 } );
 
@@ -142,11 +142,11 @@ EOD
 		map { format_content( $obj, $_ ) }
 		qw{ type start finish };
 	    print join "\t", ref $obj, $delim, format_attr( $obj,
-		qw{ failures interpolates} );
+		qw{ failures interpolates } ), perl_version( $obj );
 	    foreach my $kid ( $obj->children() ) {
 		print '  ', join "\t", ref $kid, quote( $kid->content() ),
-		    format_attr( $kid, 'error' ), variables( $kid ), ppi(
-			$kid );
+		    format_attr( $kid, 'error' ), perl_version( $kid ),
+		    variables( $kid ), ppi( $kid );
 
 	    }
 	}
@@ -190,6 +190,28 @@ sub format_content {
     return defined $val ? $val : '?';
 }
 
+sub perl_version {
+    my ( $elem ) = @_;
+    $opt{perl}
+	or return;
+    my $intro = $elem->perl_version_introduced();
+    my $remov = $elem->perl_version_removed();
+    return defined $remov ? "$intro <= \$] < $remov" : "$intro <= \$]";
+}
+
+sub ppi {
+    my ( $elem ) = @_;
+
+    $opt{ppi}
+	and $elem->can( 'ppi' )
+	or return;
+
+    require PPI::Dumper;
+    my $dumper = PPI::Dumper->new( $elem->ppi() );
+
+    return $dumper->string();
+}
+
 sub quote {
     my ( $val ) = @_;
     ref $val
@@ -211,19 +233,6 @@ __END_OF_HERE_DOCUMENT
 	or return "q/$val/";
     $val =~ s/ (?= [\\'] )/\\/smxg;
     return "'$val'";
-}
-
-sub ppi {
-    my ( $elem ) = @_;
-
-    $opt{ppi}
-	and $elem->can( 'ppi' )
-	or return;
-
-    require PPI::Dumper;
-    my $dumper = PPI::Dumper->new( $elem->ppi() );
-
-    return $dumper->string();
 }
 
 sub variables {

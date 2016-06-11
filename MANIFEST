@@ -20,6 +20,7 @@ MANIFEST			This list of files
 README
 t/basic.t
 t/parse.t
+t/version.t
 xt/author/changes.t
 xt/author/critic.t
 xt/author/executable.t
