@@ -7,242 +7,25 @@ use warnings;
 
 use Getopt::Long 2.33 qw{ :config auto_version };
 use Pod::Usage;
-use PPIx::QuoteLike;
-use Scalar::Util qw{ blessed looks_like_number };
+use PPIx::QuoteLike::Dumper;
 
 our $VERSION = '0.002';
 
-my %opt = (
-    encoding	=> 'utf-8',
-);
+my %opt;
 
 GetOptions( \%opt,
-    qw{ encoding=s perl! ppi! test! trace! variables! },
+    qw{ encoding=s perl_version|perl-version! ppi! tokens! variables! },
     help => sub { pod2usage( { -verbose => 2 } ) },
 ) or pod2usage( { -verbose => 0 } );
 
-binmode STDOUT, ":encoding($opt{encoding})"
-    or die "Failed to set STDOUT to encoding $opt{encoding}: $!\n";
+defined $opt{encoding}
+    and binmode STDOUT, ":encoding($opt{encoding})";
 
-$opt{test}
-    and not @ARGV
-    and @ARGV = ( split( qr{ \n }smx, <<'EOD' ),
-''
-"foo\"bar"
-q{\Qx}
-qq {\Qx}
-qx '$foo'
-"$foo"
-"$$foo"
-qx{${foo}bar}
-<$foo>
-"foo@{[ qq<$bar$baz> ]}buzz"
-"$foo::$bar"
-"@{$x[$i]}"
-"@@x"
-"x@*y"
-"$@"
-"${x}[0]"
-"$x[$[]"
-EOD
-    << 'END OF DATA',
-<< "EOD"
-$foo->{bar}bazzle
-EOD
-END OF DATA
-);
-
-foreach my $arg ( @ARGV ) {
-    foreach my $elem ( _expand_arg( $arg ) ) {
-	my $obj = PPIx::QuoteLike->new( $elem,
-	    encoding	=> $opt{encoding},
-	    trace	=> $opt{trace},
-	) or do {
-	    warn "$elem not handled by PPIx::QuoteLike\n";
-	    next;
-	};
-
-	my $strq = quote( my $str = $obj->content() );
-
-	if ( $opt{test} ) {
-	    my $failures = $obj->failures();
-	    my $interpolates = $obj->interpolates();
-	    my $type = quote( $obj->type() );
-	    my $delimiters = quote( $obj->delimiters() );
-	    my $start = quote( $obj->start() );
-	    my $finish = quote( scalar $obj->finish() );
-	    my $encoding = quote( $obj->encoding() );
-	    my $postderef = quote( $obj->postderef() );
-	    my @children = $obj->children();
-	    my $elements = $obj->elements();
-
-	    print <<"EOD";
-
-\$obj = PPIx::QuoteLike->new( $strq );
-if ( ok \$obj, q{Able to parse $str} ) {
-    cmp_ok \$obj->failures(), '==', $failures, q{Failures parsing $str};
-    cmp_ok \$obj->interpolates(), '==', $interpolates, q{Does $str interpolate};
-    is \$obj->content(), $strq, q{Can recover $str};
-    is \$obj->__get_value( 'type' ), $type, q{Type of $str};
-    is \$obj->delimiters(), $delimiters, q{Delimiters of $str};
-    is \$obj->__get_value( 'start' ), $start, q{Start delimiter of $str};
-    is \$obj->__get_value( 'finish' ), $finish, q{Finish delimiter of $str};
-    is \$obj->encoding(), $encoding, q{$str encoding};
-    if ( eval { require PPI::Document; 1 } ) {
-	is_deeply [ sort \$obj->variables() ],
-	    [ qw{ @{[ sort $obj->variables() ]} } ],
-	    q{$str interpolated variables};
-    }
-    cmp_ok \$obj->postderef(), '==', $postderef, q{$str postderef};
-    cmp_ok scalar \$obj->elements(), '==', $elements,
-	q{Number of elements of $str};
-    cmp_ok scalar \$obj->children(), '==', @{[ scalar @children ]},
-	q{Number of children of $str};
-EOD
-	    my $inx = 0;
-	    foreach my $kid ( @children ) {
-		my $content = quote( $kid->content );
-		my $error = quote( $kid->error() );
-		print <<"EOD";
-    if ( my \$kid = \$obj->child( $inx ) ) {
-	ok \$kid->isa( '@{[ ref $kid ]}' ),
-	    q{$str child $inx class};
-	is \$kid->content(), $content,
-	    q{$str child $inx content};
-	is \$kid->error(), $error,
-	    q{$str child $inx error};
-	cmp_ok \$kid->parent(), '==', \$obj,
-	    q{$str child $inx parent};
-	cmp_ok \$kid->previous_sibling() || 0, '==', \$obj->__kid( $inx - 1 ),
-	    q{$str child $inx previous sibling};
-	cmp_ok \$kid->next_sibling() || 0, '==', \$obj->__kid( $inx + 1 ),
-	    q{$str child $inx next sibling};
-EOD
-		if ( $kid->can( 'variables' ) ) {
-		    print <<"EOD";
-	if ( eval { require PPI::Document; 1 } ) {
-	    is_deeply [ sort \$kid->variables() ],
-		[ qw{ @{[ sort $kid->variables() ]} } ],
-		q{$str child $inx interpolated variables};
-	}
-EOD
-		}
-		print <<'EOD';
-    }
-EOD
-		$inx++;
-	    }
-	    print "}\n";
-
-	} else {
-
-	    local $\ = "\n";
-	    print "\n$str";
-	    my $delim = sprintf '%s%s...%s',
-		map { format_content( $obj, $_ ) }
-		qw{ type start finish };
-	    print join "\t", ref $obj, $delim, format_attr( $obj,
-		qw{ failures interpolates } ), perl_version( $obj );
-	    foreach my $kid ( $obj->children() ) {
-		print '  ', join "\t", ref $kid, quote( $kid->content() ),
-		    format_attr( $kid, 'error' ), perl_version( $kid ),
-		    variables( $kid ), ppi( $kid );
-
-	    }
-	}
-    }
-
-}
-
-{
-    my $doc;
-
-    sub _expand_arg {
-	my ( $arg ) = @_;
-
-	-e $arg
-	    or return $arg;
-	-f _
-	    or return;
-	require PPI::Document;
-	$doc = PPI::Document->new( $arg, readonly => 1 );
-	return grep { PPIx::QuoteLike->handles( $_ ) }
-	    @{ $doc->find( 'PPI::Token' ) || [] };
-    }
-}
-
-sub format_attr {
-    my ( $obj, @arg ) = @_;
-    my @rslt;
-    foreach my $attr ( @arg ) {
-	defined( my $val = $obj->$attr() )
-	    or next;
-	push @rslt, sprintf '%s=%s', $attr, quote( $val );
-    }
-    return @rslt;
-}
-
-sub format_content {
-    my ( $obj, $method, @arg ) = @_;
-    my $val = $obj->$method( @arg );
-    ref $val
-	and $val = $val->content();
-    return defined $val ? $val : '?';
-}
-
-sub perl_version {
-    my ( $elem ) = @_;
-    $opt{perl}
-	or return;
-    my $intro = $elem->perl_version_introduced();
-    my $remov = $elem->perl_version_removed();
-    return defined $remov ? "$intro <= \$] < $remov" : "$intro <= \$]";
-}
-
-sub ppi {
-    my ( $elem ) = @_;
-
-    $opt{ppi}
-	and $elem->can( 'ppi' )
-	or return;
-
-    require PPI::Dumper;
-    my $dumper = PPI::Dumper->new( $elem->ppi() );
-
-    return $dumper->string();
-}
-
-sub quote {
-    my ( $val ) = @_;
-    ref $val
-	and $val = $val->content();
-    defined $val
-	or return 'undef';
-    looks_like_number( $val )
-	and return $val;
-    if ( $val =~ m/ \A << /smx ) {
-	chomp $val;
-	return "<<'__END_OF_HERE_DOCUMENT'
-$val
-__END_OF_HERE_DOCUMENT
-";
-    }
-    $val =~ m/ [{}] /smx
-	or return "q{$val}";
-    $val =~ m{ / }smx
-	or return "q/$val/";
-    $val =~ s/ (?= [\\'] )/\\/smxg;
-    return "'$val'";
-}
-
-sub variables {
-    my ( $elem ) = @_;
-
-    $opt{variables}
-	and $elem->can( 'variables' )
-	or return;
-
-    return join ',', sort $elem->variables();
+foreach my $string ( @ARGV ) {
+    print "\n$string\n";
+    PPIx::QuoteLike::Dumper->new( $string,
+	map { $_ => $opt{$_} } qw{ perl_version ppi tokens variables },
+    )->print();
 }
 
 __END__
@@ -260,42 +43,47 @@ pqldump - Dump a quotelike thing
 
 =head1 OPTIONS
 
+
 =head2 -encoding
 
  -encoding utf-8
 
-This option specifies the encoding of the output, and of the input data
-where it can not otherwise be determined. If not specified, the output
-is in utf-8.
+This option specifies the encoding of the entities to be parsed, and of
+the output. If unspecified, no encoding is assumed unless the input is a
+file, in which case the file's encoding is derived from its PPI parse.
 
 =head2 -help
 
 This option displays the documentation for this script. The script then
 exits.
 
+=head2 -perl-version
+
+If asserted, this option causes the minimum Perl version (and the
+maximum if applicable) to be dumped.
+
+The defualt is C<-noperl-version>.
+
 =head2 -ppi
 
-If this option is asserted, the PPI parse of any interpolations will be
-dumped.
+If asserted, this option causes a PPI dump on any interpolations found.
+L<PPI|PPI> must be installed for this to work.
 
-=head2 -test
+The default is C<-noppi>.
 
-If this option is asserted, tests are generated. If not, the constructed
-objects are simply dumped in a format similar to PPI's dump.
+=head2 -tokens
 
-You may not assert both C<-file> and C<-test>, which is a shame because
-it leaves me no way to generate tests for here documents.
+If asserted, an unstructured dump of the tokens found is done.
 
-=head2 -trace
-
-If this option is asserted, trace information is generated. This option
-is unsupported; the author makes no commitment about what it does, and
-reserves the right to modify or retract it without prior notice.
+The default is C<-notokens>.
 
 =head2 -variables
 
-If this option is asserted, the names of the variables interpolated by
-any interpolation will be dumped.
+If asserted, this option causes the names of variables interpolated by
+any interpolations found to be dumped. L<PPI|PPI> must be installed for
+this to work.
+
+The default is C<-novariables>.
 
 =head2 -version
 
@@ -303,11 +91,7 @@ This option displays the version of this script. The script then exits.
 
 =head1 DETAILS
 
-This Perl script parses the quote-like expressions given on its command
-line, and dumps the resuls of te parse to standard out. If an argument
-is a path to a normal file, that file is run through L<PPI|/PPI> (which
-must be loadable), and anything that can be dumped will be dumped.
-Otherwise it will be interpreted as a string literal of some sort.
+<<< replace boiler plate >>>
 
 =head1 AUTHOR
 

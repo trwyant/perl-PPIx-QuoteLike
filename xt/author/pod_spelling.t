@@ -29,5 +29,6 @@ ppix
 quotish
 schild
 schildren
+trigraphs
 uninterpolated
 Wyant

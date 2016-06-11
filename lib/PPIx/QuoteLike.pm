@@ -975,7 +975,7 @@ version of Perl, it was simply parsed as C<V>. So
 
  $ perl -le 'print "Foo\FBar"'
 
-prints "FooFBar" under Perl 5.14.4, but "Foobar" under 5.16.0.
+prints C<"FooFBar"> under Perl 5.14.4, but C<"Foobar"> under 5.16.0.
 C<PPIx::QuoteLike> generally assumes the more modern parse in cases like
 this.
 
