@@ -520,7 +520,10 @@ sub __decode {
 	if ( $_[2] =~ m< \G ( @{[ VARIABLE_RE ]} ) >smxgco
 	) {
 	    my $interp = "$sigil$1";
-	    while ( $_[2] =~ m/ \G  ( (?: -> )? ) (?= ( [[{] ) ) /smxgc ) {	# }]
+	    my $deref = $self->postderef() ?
+		qr{ -> \@ | (?: -> )? }smx :
+		qr{ (?: -> )? }smx;
+	    while ( $_[2] =~ m/ \G  ( $deref ) (?= ( [[{] ) ) /smxgc ) { # }]
 		my $lead_in = $1;
 		my $delim_re = _match_enclosed( $2 );
 		if ( $_[2] =~ m/ \G ( $delim_re ) /smxgc ) {

@@ -73,7 +73,7 @@ sub ppi {
 
 sub __perl_version_introduced {
     my ( $self ) = @_;
-    $self->content() =~ m/ [\@\$] [*] \z /smx
+    $self->content() =~ m/ -> (?: \@ [[{*] | % [*] ) /smx
 	and return '5.019005';
     return;
 }
