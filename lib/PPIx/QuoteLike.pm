@@ -562,16 +562,18 @@ sub _link_elems {
 	if ( my $right = $matching_bracket{$left} ) {
 	    # Based on Regexp::Common $RE{balanced}
 	    return ( $cache{$left} =
-		qr{ (
+		# TODO replace (??{...}) with (?-1) once we can rely on
+		# at least Perl 5.009005.
+		qr/ (
 		    \Q$left\E
 		    (?:
 			(?> [^\\\Q$left$right\E]+ ) |
 			(?> \$ [\Q$left$right\E] ) |
 			(?> \\ . ) |
-			(?-1)
+			(??{$cache{$left}})
 		    )*
 		    \Q$right\E
-		) }smx
+		) /smx
 	    );
 	} else {
 	    # Based on Regexp::Common $RE{delimited}{-delim=>'`'}

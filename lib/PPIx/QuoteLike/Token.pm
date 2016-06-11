@@ -1,6 +1,6 @@
 package PPIx::QuoteLike::Token;
 
-use 5.008;
+use 5.006;
 
 use strict;
 use warnings;
