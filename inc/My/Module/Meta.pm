@@ -28,6 +28,29 @@ sub distribution {
     return $self->{distribution};
 }
 
+sub meta_merge {
+    return {
+	'meta-spec'	=> {
+	    version	=> 2,
+	},
+	no_index	=> {
+	    directory	=> [ qw{ inc t xt } ],
+	},
+	resources	=> {
+	    bugtracker	=> {
+                web	=> 'https://rt.cpan.org/Public/Dist/Display.html?Name=PPIx-QuoteLike',
+                mailto  => 'wyant@cpan.org',
+            },
+	    license	=> 'http://dev.perl.org/licenses/',
+	    repository	=> {
+		type	=> 'git',
+		url	=> 'git://github.com/trwyant/perl-PPIx-QuoteLike.git',
+		web	=> 'https://github.com/trwyant/perl-PPIx-QuoteLike',
+	    },
+	}
+    };
+}
+
 sub requires {
     my ( $self, @extra ) = @_;
 ##  if ( ! $self->distribution() ) {
