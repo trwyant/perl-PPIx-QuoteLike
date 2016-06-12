@@ -586,21 +586,46 @@ sub _link_elems {
     sub _match_enclosed {
 	my ( $left ) = @_;
 	if ( my $right = $matching_bracket{$left} ) {
-	    # Based on Regexp::Common $RE{balanced}
+=begin comment
+
 	    return ( $cache{$left} =
-		# TODO replace (??{...}) with (?-1) once we can rely on
-		# at least Perl 5.009005.
 		qr/ (
 		    \Q$left\E
 		    (?:
 			(?> [^\\\Q$left$right\E]+ ) |
 			(?> \$ [\Q$left$right\E] ) |
 			(?> \\ . ) |
-			(??{$cache{$left}})
+			(?-1)
 		    )*
 		    \Q$right\E
 		) /smx
 	    );
+
+=end comment
+
+=cut
+	    # Based on Regexp::Common $RE{balanced} 2.113 (because I
+	    # can't use (?-1)
+	    $cache{$left}
+		and return $cache{$left};
+	    my $ql = quotemeta $left;
+	    my $qr = quotemeta $right;
+	    my $r  = quotemeta "(??{ \$cache{'$ql'} } )";
+	    my $re = <<"EOD";
+qr/
+    $ql
+    (?:
+	(?> [^\\\\$ql$qr]+ ) |
+	(?> \\\$ [$ql$qr] ) |
+	(?> \\\\ . ) |
+	$r
+    )*
+    $qr
+/x
+EOD
+	    $cache{$left} = eval $re	## no critic (ProhibitStringyEval)
+		or confess( "Failed to build re $re: $@" );
+	    return $cache{$left};
 	} else {
 	    # Based on Regexp::Common $RE{delimited}{-delim=>'`'}
 	    return ( $cache{$left} ||=
