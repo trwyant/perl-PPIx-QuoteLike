@@ -1,3 +1,19 @@
+0.003		2016-06-12	T. R. Wyant
+  Another attempt to make old Perls work. Version 0.002 assumed I could
+    have other interpolations in a regex with (??{...}), but this turned
+    out not to be the case if Perl was earlier than 5.18.0. This was
+    actually a step in the wrong direction since (?-1) works back to
+    5.10.0.
+
+  Add PPIx::QuoteLike::Dumper, redo eg/pqldump to use it.
+
+  Recognize postderef slice syntax. This is stuff like $x->@[0,2] (array
+    slice) or $x->@{foo,bar} (hash slice).
+
+  Add methods perl_version_introduced() and perl_version_removed(). As
+    of this release, the former returns '5.000' unless '\F' or postfix
+    dereferencing are detected, and the latter always returns undef.
+
 0.002		2016-06-11	T. R. Wyant
   Eliminte blockers to running under Perl 5.6. The significant change
     was replacing (?-1) in a regular expression (introduced in 5.9.5)

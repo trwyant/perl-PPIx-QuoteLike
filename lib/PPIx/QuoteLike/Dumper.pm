@@ -9,7 +9,7 @@ use Carp;
 use PPIx::QuoteLike;
 use Scalar::Util ();
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 {
     my $default = {
