@@ -5,6 +5,9 @@ use warnings;
 
 use Test::More 0.88;
 
+require_ok 'PPIx::QuoteLike::Constant'
+    or BAIL_OUT $@;
+
 require_ok 'PPIx::QuoteLike::Token'
     or BAIL_OUT $@;
 
@@ -34,6 +37,12 @@ require_ok 'PPIx::QuoteLike'
 
 my $ms = eval { PPIx::QuoteLike->new( q<''> ) };
 isa_ok $ms, 'PPIx::QuoteLike'
+    or BAIL_OUT $@;
+
+require_ok 'PPIx::QuoteLike::Dumper';
+
+my $dmp = eval { PPIx::QuoteLike::Dumper->new( q<''> ) };
+isa_ok $dmp, 'PPIx::QuoteLike::Dumper'
     or BAIL_OUT $@;
 
 done_testing;

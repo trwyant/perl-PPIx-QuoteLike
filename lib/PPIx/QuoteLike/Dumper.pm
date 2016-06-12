@@ -14,6 +14,7 @@ our $VERSION = '0.002';
 {
     my $default = {
 	encoding	=> undef,
+	file		=> undef,
 	indent		=> 2,
 	margin		=> 0,
 	perl_version	=> 0,
@@ -47,11 +48,22 @@ our $VERSION = '0.002';
     }
 }
 
-sub _isa {
-    my ( $arg, $class ) = @_;
-    Scalar::Util::blessed( $arg )
-	or return 0;
-    return $arg->isa( $class );
+sub dump : method {	## no critic (ProhibitBuiltinHomonyms)
+    my ( $class, $source, %arg ) = @_;
+    my $rslt;
+    foreach my $obj ( $class->_source_to_dumpers( $source, %arg ) ) {
+	my $src = $obj->{object}->source();
+	$rslt .= "\n$src";
+	if ( _isa( $src, 'PPI::Element' ) and my $loc = $src->location() ) {
+	    $rslt .= sprintf ' %s line %d column %d',
+		_dor( $loc->[4], $obj->{file}, '?' ),
+		$loc->[0], $loc->[1];
+	}
+	$rslt .= "\n" . $obj->string();
+    }
+    defined $rslt
+	and return $rslt;
+    return;
 }
 
 sub list {
@@ -107,6 +119,35 @@ sub string {
     return join '', map { "$margin$_\n" } $self->list( 1 );
 }
 
+{
+    # We have to hold a reference to the PPI document until we're done
+    # with all its elements, otherwise they evaporate. Holding it here
+    # works as long as we actually format the dump for all elements
+    # before calling this again.
+    my $doc;
+
+    sub _doc_to_dumper {
+	my ( $class, $path, %arg ) = @_;
+	require PPI::Document;
+	$doc = PPI::Document->new( $path )
+	    or return;
+	ref $path
+	    or $arg{file} = $path;
+	$doc->index_locations();
+	return map { $class->new( $_, %arg ) }
+	    @{ $doc->find( 'PPI::Token' ) || [] };
+    }
+}
+
+sub _dor {
+    my @arg = @_;
+    foreach my $a ( @arg ) {
+	defined $a
+	    and return $a;
+    }
+    return;
+}
+
 sub _format_attr {
     my ( $obj, @arg ) = @_;
     my @rslt;
@@ -124,6 +165,13 @@ sub _format_content {
     ref $val
 	and $val = $val->content();
     return defined $val ? $val : '?';
+}
+
+sub _isa {
+    my ( $arg, $class ) = @_;
+    Scalar::Util::blessed( $arg )
+	or return 0;
+    return $arg->isa( $class );
 }
 
 sub _perl_version {
@@ -185,6 +233,41 @@ __END_OF_HERE_DOCUMENT
 
     $val =~ s/ (?= [\\'] )/\\/smxg;
     return "'$val'";
+}
+
+sub _source_to_dumpers {
+    my ( $class, $path, %arg ) = @_;
+    if ( Scalar::Util::blessed( $path ) ) {
+	if ( _isa( $path, 'PPI::Node' ) ) {
+	    return map {
+		PPIx::QuoteLike->handles( $_ ) ?
+		    $class->new( $_, %arg ) : () }
+		@{ $path->find( 'PPI::Token' ) || [] };
+	} elsif ( _isa( $path, 'PPI::Element' ) ) {
+	    PPIx::QuoteLike->handles( $path )
+		and return $class->new( $path, %arg );
+	}
+    } elsif ( my $ref = ref $path ) {
+	'SCALAR' eq $ref
+	    or return;
+	return $class->_doc_to_dumper( $path, %arg );
+    } else {
+	-f $path
+	    or return $class->new( $path, %arg );
+	-T _
+	    or return;
+	unless ( $path =~ m/ [.] (?: (?i: pl ) | pm | t ) \z /smx ) {
+	    open my $fh, '<', $path
+		or return;
+	    defined( local $_ = <$fh> )
+		or return;
+	    close $fh;
+	    m/ perl /smx
+		or return;
+	}
+	return $class->_doc_to_dumper( $path, %arg );
+    }
+    return;
 }
 
 sub _variables {
@@ -297,6 +380,37 @@ interpolations to be dumped.
 The default is C<0> (i.e. false).
 
 =back
+
+=head2 dump
+
+ print PPIx::Regexp::Dumper->dump( 'foo/bar.pl',
+     variables => 1,
+ );
+
+This static method returns a string that represents a dump of its first
+argument. It takes the same optional arguments as L<new()|/new>. This
+method differs from L<new()|/new> in its interpretation of the first
+argument.
+
+=over
+
+=item * If the first argument is the name of a file, or is a SCALAR
+reference, it is made into a L<PPI::Document|PPI::Document> and all
+strings in the document are dumped.
+
+=item * If the first argument is a L<PPI::Node|PPI::Node> all strings in
+the node are dumped. Note that a L<PPI::Document|PPI::Document> is a
+L<PPI::Node|PPI::Node>.
+
+=back
+
+Otherwise the first argument is handled just like L<new()|/new> would
+handle it.
+
+The output for an individual quote-like object differs from the
+L<string()|/string> output on the same object in that it is preceded by
+the literal sting being dumped, and file and location information if
+that can be determined.
 
 =head2 list
 

@@ -21,11 +21,11 @@ GetOptions( \%opt,
 defined $opt{encoding}
     and binmode STDOUT, ":encoding($opt{encoding})";
 
-foreach my $string ( @ARGV ) {
-    print "\n$string\n";
-    PPIx::QuoteLike::Dumper->new( $string,
-	map { $_ => $opt{$_} } qw{ perl_version ppi tokens variables },
-    )->print();
+my @dumper_arg = map { $_ => $opt{$_} }
+    qw{ perl_version ppi tokens variables };
+
+foreach my $arg ( @ARGV ) {
+    print PPIx::QuoteLike::Dumper->dump( $arg, @dumper_arg );
 }
 
 __END__
