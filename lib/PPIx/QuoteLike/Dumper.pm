@@ -6,6 +6,8 @@ use strict;
 use warnings;
 
 use Carp;
+use PPI::Document;
+use PPI::Dumper;
 use PPIx::QuoteLike;
 use Scalar::Util ();
 
@@ -128,7 +130,6 @@ sub string {
 
     sub _doc_to_dumper {
 	my ( $class, $path, %arg ) = @_;
-	require PPI::Document;
 	$doc = PPI::Document->new( $path )
 	    or return;
 	ref $path
@@ -190,7 +191,6 @@ sub _ppi {
 	and $elem->can( 'ppi' )
 	or return;
 
-    require PPI::Dumper;
     my $dumper = PPI::Dumper->new( $elem->ppi(),
 	map { $_ => $self->{$_} } qw{ indent },
     );
@@ -290,7 +290,7 @@ PPIx::QuoteLike::Dumper - Dump the results of parsing quotelike things
 
 =head1 SYNOPSIS
 
- use PPI::QuoteLike::Dumper;
+ use PPIx::QuoteLike::Dumper;
  PPIx::QuoteLike::Dumper->new( '"foo$bar baz"' )
    ->print();
 

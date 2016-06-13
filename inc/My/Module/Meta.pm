@@ -58,10 +58,15 @@ sub requires {
     return +{
 	'Carp'		=> 0,
 	'Encode'	=> 0,
+	'Exporter'	=> 0,
 	'List::Util'	=> 0,
+	'PPI::Document'	=> 1.117,
+	'PPI::Dumper'	=> 1.117,
 	'Scalar::Util'	=> 0,
-	strict		=> 0,
-	warnings	=> 0,
+	'base'		=> 0,
+	'constant'	=> 0,
+	'strict'	=> 0,
+	'warnings'	=> 0,
 	@extra,
     };
 }

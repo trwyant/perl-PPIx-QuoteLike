@@ -20,11 +20,9 @@ if ( ok $obj, q<Able to parse ''> ) {
     is $obj->__get_value( 'start' ), q{'}, q<Start delimiter of ''>;
     is $obj->__get_value( 'finish' ), q{'}, q<Finish delimiter of ''>;
     is $obj->encoding(), undef, q<'' encoding>;
-    if ( eval { require PPI::Document; 1 } ) {
-	is_deeply [ sort $obj->variables() ],
-	    [ qw{  } ],
-	    q<'' interpolated variables>;
-    }
+    is_deeply [ sort $obj->variables() ],
+	[ qw{  } ],
+	q<'' interpolated variables>;
     cmp_ok $obj->postderef(), '==', 1, q<'' postderef>;
     cmp_ok scalar $obj->elements(), '==', 3,
 	q<Number of elements of ''>;
@@ -42,11 +40,9 @@ if ( ok $obj, q<Able to parse "foo\"bar"> ) {
     is $obj->__get_value( 'start' ), q{"}, q<Start delimiter of "foo\"bar">;
     is $obj->__get_value( 'finish' ), q{"}, q<Finish delimiter of "foo\"bar">;
     is $obj->encoding(), undef, q<"foo\"bar" encoding>;
-    if ( eval { require PPI::Document; 1 } ) {
-	is_deeply [ sort $obj->variables() ],
-	    [ qw{  } ],
-	    q<"foo\"bar" interpolated variables>;
-    }
+    is_deeply [ sort $obj->variables() ],
+	[ qw{  } ],
+	q<"foo\"bar" interpolated variables>;
     cmp_ok $obj->postderef(), '==', 1, q<"foo\"bar" postderef>;
     cmp_ok scalar $obj->elements(), '==', 4,
 	q<Number of elements of "foo\"bar">;
@@ -78,11 +74,9 @@ if ( ok $obj, q<Able to parse q{\Qx}> ) {
     is $obj->__get_value( 'start' ), q/{/, q<Start delimiter of q{\Qx}>;
     is $obj->__get_value( 'finish' ), q/}/, q<Finish delimiter of q{\Qx}>;
     is $obj->encoding(), undef, q<q{\Qx} encoding>;
-    if ( eval { require PPI::Document; 1 } ) {
-	is_deeply [ sort $obj->variables() ],
-	    [ qw{  } ],
-	    q<q{\Qx} interpolated variables>;
-    }
+    is_deeply [ sort $obj->variables() ],
+	[ qw{  } ],
+	q<q{\Qx} interpolated variables>;
     cmp_ok $obj->postderef(), '==', 1, q<q{\Qx} postderef>;
     cmp_ok scalar $obj->elements(), '==', 4,
 	q<Number of elements of q{\Qx}>;
@@ -114,11 +108,9 @@ if ( ok $obj, q<Able to parse qq {\Qx}> ) {
     is $obj->__get_value( 'start' ), q/{/, q<Start delimiter of qq {\Qx}>;
     is $obj->__get_value( 'finish' ), q/}/, q<Finish delimiter of qq {\Qx}>;
     is $obj->encoding(), undef, q<qq {\Qx} encoding>;
-    if ( eval { require PPI::Document; 1 } ) {
-	is_deeply [ sort $obj->variables() ],
-	    [ qw{  } ],
-	    q<qq {\Qx} interpolated variables>;
-    }
+    is_deeply [ sort $obj->variables() ],
+	[ qw{  } ],
+	q<qq {\Qx} interpolated variables>;
     cmp_ok $obj->postderef(), '==', 1, q<qq {\Qx} postderef>;
     cmp_ok scalar $obj->elements(), '==', 6,
 	q<Number of elements of qq {\Qx}>;
@@ -164,11 +156,9 @@ if ( ok $obj, q<Able to parse qx '$foo'> ) {
     is $obj->__get_value( 'start' ), q{'}, q<Start delimiter of qx '$foo'>;
     is $obj->__get_value( 'finish' ), q{'}, q<Finish delimiter of qx '$foo'>;
     is $obj->encoding(), undef, q<qx '$foo' encoding>;
-    if ( eval { require PPI::Document; 1 } ) {
-	is_deeply [ sort $obj->variables() ],
-	    [ qw{  } ],
-	    q<qx '$foo' interpolated variables>;
-    }
+    is_deeply [ sort $obj->variables() ],
+	[ qw{  } ],
+	q<qx '$foo' interpolated variables>;
     cmp_ok $obj->postderef(), '==', 1, q<qx '$foo' postderef>;
     cmp_ok scalar $obj->elements(), '==', 5,
 	q<Number of elements of qx '$foo'>;
@@ -200,11 +190,9 @@ if ( ok $obj, q<Able to parse "$foo"> ) {
     is $obj->__get_value( 'start' ), q{"}, q<Start delimiter of "$foo">;
     is $obj->__get_value( 'finish' ), q{"}, q<Finish delimiter of "$foo">;
     is $obj->encoding(), undef, q<"$foo" encoding>;
-    if ( eval { require PPI::Document; 1 } ) {
-	is_deeply [ sort $obj->variables() ],
-	    [ qw{ $foo } ],
-	    q<"$foo" interpolated variables>;
-    }
+    is_deeply [ sort $obj->variables() ],
+	[ qw{ $foo } ],
+	q<"$foo" interpolated variables>;
     cmp_ok $obj->postderef(), '==', 1, q<"$foo" postderef>;
     cmp_ok scalar $obj->elements(), '==', 4,
 	q<Number of elements of "$foo">;
@@ -223,11 +211,9 @@ if ( ok $obj, q<Able to parse "$foo"> ) {
 	    q<"$foo" child 0 previous sibling>;
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
 	    q<"$foo" child 0 next sibling>;
-	if ( eval { require PPI::Document; 1 } ) {
-	    is_deeply [ sort $kid->variables() ],
-		[ qw{ $foo } ],
-		q<"$foo" child 0 interpolated variables>;
-	}
+	is_deeply [ sort $kid->variables() ],
+	    [ qw{ $foo } ],
+	    q<"$foo" child 0 interpolated variables>;
     }
 }
 
@@ -241,11 +227,9 @@ if ( ok $obj, q<Able to parse "$$foo"> ) {
     is $obj->__get_value( 'start' ), q{"}, q<Start delimiter of "$$foo">;
     is $obj->__get_value( 'finish' ), q{"}, q<Finish delimiter of "$$foo">;
     is $obj->encoding(), undef, q<"$$foo" encoding>;
-    if ( eval { require PPI::Document; 1 } ) {
-	is_deeply [ sort $obj->variables() ],
-	    [ qw{ $foo } ],
-	    q<"$$foo" interpolated variables>;
-    }
+    is_deeply [ sort $obj->variables() ],
+	[ qw{ $foo } ],
+	q<"$$foo" interpolated variables>;
     cmp_ok $obj->postderef(), '==', 1, q<"$$foo" postderef>;
     cmp_ok scalar $obj->elements(), '==', 4,
 	q<Number of elements of "$$foo">;
@@ -264,11 +248,9 @@ if ( ok $obj, q<Able to parse "$$foo"> ) {
 	    q<"$$foo" child 0 previous sibling>;
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
 	    q<"$$foo" child 0 next sibling>;
-	if ( eval { require PPI::Document; 1 } ) {
-	    is_deeply [ sort $kid->variables() ],
-		[ qw{ $foo } ],
-		q<"$$foo" child 0 interpolated variables>;
-	}
+	is_deeply [ sort $kid->variables() ],
+	    [ qw{ $foo } ],
+	    q<"$$foo" child 0 interpolated variables>;
     }
 }
 
@@ -282,11 +264,9 @@ if ( ok $obj, q<Able to parse qx{${foo}bar}> ) {
     is $obj->__get_value( 'start' ), q/{/, q<Start delimiter of qx{${foo}bar}>;
     is $obj->__get_value( 'finish' ), q/}/, q<Finish delimiter of qx{${foo}bar}>;
     is $obj->encoding(), undef, q<qx{${foo}bar} encoding>;
-    if ( eval { require PPI::Document; 1 } ) {
-	is_deeply [ sort $obj->variables() ],
-	    [ qw{ $foo } ],
-	    q<qx{${foo}bar} interpolated variables>;
-    }
+    is_deeply [ sort $obj->variables() ],
+	[ qw{ $foo } ],
+	q<qx{${foo}bar} interpolated variables>;
     cmp_ok $obj->postderef(), '==', 1, q<qx{${foo}bar} postderef>;
     cmp_ok scalar $obj->elements(), '==', 5,
 	q<Number of elements of qx{${foo}bar}>;
@@ -305,11 +285,9 @@ if ( ok $obj, q<Able to parse qx{${foo}bar}> ) {
 	    q<qx{${foo}bar} child 0 previous sibling>;
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
 	    q<qx{${foo}bar} child 0 next sibling>;
-	if ( eval { require PPI::Document; 1 } ) {
-	    is_deeply [ sort $kid->variables() ],
-		[ qw{ $foo } ],
-		q<qx{${foo}bar} child 0 interpolated variables>;
-	}
+	is_deeply [ sort $kid->variables() ],
+	    [ qw{ $foo } ],
+	    q<qx{${foo}bar} child 0 interpolated variables>;
     }
     if ( my $kid = $obj->child( 1 ) ) {
 	ok $kid->isa( 'PPIx::QuoteLike::Token::String' ),
@@ -337,11 +315,9 @@ if ( ok $obj, q<Able to parse <$foo>> ) {
     is $obj->__get_value( 'start' ), q{<}, q<Start delimiter of <$foo>>;
     is $obj->__get_value( 'finish' ), q{>}, q<Finish delimiter of <$foo>>;
     is $obj->encoding(), undef, q<<$foo> encoding>;
-    if ( eval { require PPI::Document; 1 } ) {
-	is_deeply [ sort $obj->variables() ],
-	    [ qw{ $foo } ],
-	    q<<$foo> interpolated variables>;
-    }
+    is_deeply [ sort $obj->variables() ],
+	[ qw{ $foo } ],
+	q<<$foo> interpolated variables>;
     cmp_ok $obj->postderef(), '==', 1, q<<$foo> postderef>;
     cmp_ok scalar $obj->elements(), '==', 4,
 	q<Number of elements of <$foo>>;
@@ -360,11 +336,9 @@ if ( ok $obj, q<Able to parse <$foo>> ) {
 	    q<<$foo> child 0 previous sibling>;
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
 	    q<<$foo> child 0 next sibling>;
-	if ( eval { require PPI::Document; 1 } ) {
-	    is_deeply [ sort $kid->variables() ],
-		[ qw{ $foo } ],
-		q<<$foo> child 0 interpolated variables>;
-	}
+	is_deeply [ sort $kid->variables() ],
+	    [ qw{ $foo } ],
+	    q<<$foo> child 0 interpolated variables>;
     }
 }
 
@@ -378,11 +352,9 @@ if ( ok $obj, q<Able to parse "foo@{[ qq<$bar$baz> ]}buzz"> ) {
     is $obj->__get_value( 'start' ), q{"}, q<Start delimiter of "foo@{[ qq<$bar$baz> ]}buzz">;
     is $obj->__get_value( 'finish' ), q{"}, q<Finish delimiter of "foo@{[ qq<$bar$baz> ]}buzz">;
     is $obj->encoding(), undef, q<"foo@{[ qq<$bar$baz> ]}buzz" encoding>;
-    if ( eval { require PPI::Document; 1 } ) {
-	is_deeply [ sort $obj->variables() ],
-	    [ qw{ $bar $baz } ],
-	    q<"foo@{[ qq<$bar$baz> ]}buzz" interpolated variables>;
-    }
+    is_deeply [ sort $obj->variables() ],
+	[ qw{ $bar $baz } ],
+	q<"foo@{[ qq<$bar$baz> ]}buzz" interpolated variables>;
     cmp_ok $obj->postderef(), '==', 1, q<"foo@{[ qq<$bar$baz> ]}buzz" postderef>;
     cmp_ok scalar $obj->elements(), '==', 6,
 	q<Number of elements of "foo@{[ qq<$bar$baz> ]}buzz">;
@@ -415,11 +387,9 @@ if ( ok $obj, q<Able to parse "foo@{[ qq<$bar$baz> ]}buzz"> ) {
 	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 1 previous sibling>;
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 1 + 1 ),
 	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 1 next sibling>;
-	if ( eval { require PPI::Document; 1 } ) {
-	    is_deeply [ sort $kid->variables() ],
-		[ qw{ $bar $baz } ],
-		q<"foo@{[ qq<$bar$baz> ]}buzz" child 1 interpolated variables>;
-	}
+	is_deeply [ sort $kid->variables() ],
+	    [ qw{ $bar $baz } ],
+	    q<"foo@{[ qq<$bar$baz> ]}buzz" child 1 interpolated variables>;
     }
     if ( my $kid = $obj->child( 2 ) ) {
 	ok $kid->isa( 'PPIx::QuoteLike::Token::String' ),
@@ -447,11 +417,9 @@ if ( ok $obj, q<Able to parse "$foo::$bar"> ) {
     is $obj->__get_value( 'start' ), q{"}, q<Start delimiter of "$foo::$bar">;
     is $obj->__get_value( 'finish' ), q{"}, q<Finish delimiter of "$foo::$bar">;
     is $obj->encoding(), undef, q<"$foo::$bar" encoding>;
-    if ( eval { require PPI::Document; 1 } ) {
-	is_deeply [ sort $obj->variables() ],
-	    [ qw{ $bar $foo } ],
-	    q<"$foo::$bar" interpolated variables>;
-    }
+    is_deeply [ sort $obj->variables() ],
+	[ qw{ $bar $foo } ],
+	q<"$foo::$bar" interpolated variables>;
     cmp_ok $obj->postderef(), '==', 1, q<"$foo::$bar" postderef>;
     cmp_ok scalar $obj->elements(), '==', 6,
 	q<Number of elements of "$foo::$bar">;
@@ -470,11 +438,9 @@ if ( ok $obj, q<Able to parse "$foo::$bar"> ) {
 	    q<"$foo::$bar" child 0 previous sibling>;
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
 	    q<"$foo::$bar" child 0 next sibling>;
-	if ( eval { require PPI::Document; 1 } ) {
-	    is_deeply [ sort $kid->variables() ],
-		[ qw{ $foo } ],
-		q<"$foo::$bar" child 0 interpolated variables>;
-	}
+	is_deeply [ sort $kid->variables() ],
+	    [ qw{ $foo } ],
+	    q<"$foo::$bar" child 0 interpolated variables>;
     }
     if ( my $kid = $obj->child( 1 ) ) {
 	ok $kid->isa( 'PPIx::QuoteLike::Token::String' ),
@@ -503,11 +469,9 @@ if ( ok $obj, q<Able to parse "$foo::$bar"> ) {
 	    q<"$foo::$bar" child 2 previous sibling>;
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 2 + 1 ),
 	    q<"$foo::$bar" child 2 next sibling>;
-	if ( eval { require PPI::Document; 1 } ) {
-	    is_deeply [ sort $kid->variables() ],
-		[ qw{ $bar } ],
-		q<"$foo::$bar" child 2 interpolated variables>;
-	}
+	is_deeply [ sort $kid->variables() ],
+	    [ qw{ $bar } ],
+	    q<"$foo::$bar" child 2 interpolated variables>;
     }
 }
 
@@ -521,11 +485,9 @@ if ( ok $obj, q<Able to parse "@{$x[$i]}"> ) {
     is $obj->__get_value( 'start' ), q{"}, q<Start delimiter of "@{$x[$i]}">;
     is $obj->__get_value( 'finish' ), q{"}, q<Finish delimiter of "@{$x[$i]}">;
     is $obj->encoding(), undef, q<"@{$x[$i]}" encoding>;
-    if ( eval { require PPI::Document; 1 } ) {
-	is_deeply [ sort $obj->variables() ],
-	    [ qw{ $i @x } ],
-	    q<"@{$x[$i]}" interpolated variables>;
-    }
+    is_deeply [ sort $obj->variables() ],
+	[ qw{ $i @x } ],
+	q<"@{$x[$i]}" interpolated variables>;
     cmp_ok $obj->postderef(), '==', 1, q<"@{$x[$i]}" postderef>;
     cmp_ok scalar $obj->elements(), '==', 4,
 	q<Number of elements of "@{$x[$i]}">;
@@ -544,11 +506,9 @@ if ( ok $obj, q<Able to parse "@{$x[$i]}"> ) {
 	    q<"@{$x[$i]}" child 0 previous sibling>;
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
 	    q<"@{$x[$i]}" child 0 next sibling>;
-	if ( eval { require PPI::Document; 1 } ) {
-	    is_deeply [ sort $kid->variables() ],
-		[ qw{ $i @x } ],
-		q<"@{$x[$i]}" child 0 interpolated variables>;
-	}
+	is_deeply [ sort $kid->variables() ],
+	    [ qw{ $i @x } ],
+	    q<"@{$x[$i]}" child 0 interpolated variables>;
     }
 }
 
@@ -600,14 +560,12 @@ EOD
 $foo->{bar}bazzle
 EOD
  encoding};
-    if ( eval { require PPI::Document; 1 } ) {
-	is_deeply [ sort $obj->variables() ],
-	    [ qw{ $foo } ],
-	    q{<< "EOD"
+    is_deeply [ sort $obj->variables() ],
+	[ qw{ $foo } ],
+	q{<< "EOD"
 $foo->{bar}bazzle
 EOD
  interpolated variables};
-    }
     cmp_ok $obj->postderef(), '==', 1, q{<< "EOD"
 $foo->{bar}bazzle
 EOD
@@ -653,14 +611,12 @@ EOD
 $foo->{bar}bazzle
 EOD
  child 0 next sibling};
-	if ( eval { require PPI::Document; 1 } ) {
-	    is_deeply [ sort $kid->variables() ],
-		[ qw{ $foo } ],
-		q{<< "EOD"
+	is_deeply [ sort $kid->variables() ],
+	    [ qw{ $foo } ],
+	    q{<< "EOD"
 $foo->{bar}bazzle
 EOD
  child 0 interpolated variables};
-	}
     }
     if ( my $kid = $obj->child( 1 ) ) {
 	ok $kid->isa( 'PPIx::QuoteLike::Token::String' ),
@@ -707,11 +663,9 @@ if ( ok $obj, q{Able to parse "@@x"} ) {
     is $obj->__get_value( 'start' ), q{"}, q{Start delimiter of "@@x"};
     is $obj->__get_value( 'finish' ), q{"}, q{Finish delimiter of "@@x"};
     is $obj->encoding(), undef, q{"@@x" encoding};
-    if ( eval { require PPI::Document; 1 } ) {
-	is_deeply [ sort $obj->variables() ],
-	    [ qw{ @x } ],
-	    q{"@@x" interpolated variables};
-    }
+    is_deeply [ sort $obj->variables() ],
+	[ qw{ @x } ],
+	q{"@@x" interpolated variables};
     cmp_ok $obj->postderef(), '==', 1, q{"@@x" postderef};
     cmp_ok scalar $obj->elements(), '==', 5,
 	q{Number of elements of "@@x"};
@@ -744,11 +698,9 @@ if ( ok $obj, q{Able to parse "@@x"} ) {
 	    q{"@@x" child 1 previous sibling};
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 1 + 1 ),
 	    q{"@@x" child 1 next sibling};
-	if ( eval { require PPI::Document; 1 } ) {
-	    is_deeply [ sort $kid->variables() ],
-		[ qw{ @x } ],
-		q{"@@x" child 1 interpolated variables};
-	}
+	is_deeply [ sort $kid->variables() ],
+	    [ qw{ @x } ],
+	    q{"@@x" child 1 interpolated variables};
     }
 }
 
@@ -762,11 +714,9 @@ if ( ok $obj, q{Able to parse "x@*y"} ) {
     is $obj->__get_value( 'start' ), q{"}, q{Start delimiter of "x@*y"};
     is $obj->__get_value( 'finish' ), q{"}, q{Finish delimiter of "x@*y"};
     is $obj->encoding(), undef, q{"x@*y" encoding};
-    if ( eval { require PPI::Document; 1 } ) {
-	is_deeply [ sort $obj->variables() ],
-	    [ qw{  } ],
-	    q{"x@*y" interpolated variables};
-    }
+    is_deeply [ sort $obj->variables() ],
+	[ qw{  } ],
+	q{"x@*y" interpolated variables};
     cmp_ok $obj->postderef(), '==', 1, q{"x@*y" postderef};
     cmp_ok scalar $obj->elements(), '==', 4,
 	q{Number of elements of "x@*y"};
@@ -798,11 +748,9 @@ if ( ok $obj, q{Able to parse "$@"} ) {
     is $obj->__get_value( 'start' ), q{"}, q{Start delimiter of "$@"};
     is $obj->__get_value( 'finish' ), q{"}, q{Finish delimiter of "$@"};
     is $obj->encoding(), undef, q{"$@" encoding};
-    if ( eval { require PPI::Document; 1 } ) {
-	is_deeply [ sort $obj->variables() ],
-	    [ qw{ $@ } ],
-	    q{"$@" interpolated variables};
-    }
+    is_deeply [ sort $obj->variables() ],
+	[ qw{ $@ } ],
+	q{"$@" interpolated variables};
     cmp_ok $obj->postderef(), '==', 1, q{"$@" postderef};
     cmp_ok scalar $obj->elements(), '==', 4,
 	q{Number of elements of "$@"};
@@ -821,11 +769,9 @@ if ( ok $obj, q{Able to parse "$@"} ) {
 	    q{"$@" child 0 previous sibling};
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
 	    q{"$@" child 0 next sibling};
-	if ( eval { require PPI::Document; 1 } ) {
-	    is_deeply [ sort $kid->variables() ],
-		[ qw{ $@ } ],
-		q{"$@" child 0 interpolated variables};
-	}
+	is_deeply [ sort $kid->variables() ],
+	    [ qw{ $@ } ],
+	    q{"$@" child 0 interpolated variables};
     }
 }
 
@@ -839,11 +785,9 @@ if ( ok $obj, q{Able to parse "${x}[0]"} ) {
     is $obj->__get_value( 'start' ), q{"}, q{Start delimiter of "${x}[0]"};
     is $obj->__get_value( 'finish' ), q{"}, q{Finish delimiter of "${x}[0]"};
     is $obj->encoding(), undef, q{"${x}[0]" encoding};
-    if ( eval { require PPI::Document; 1 } ) {
-	is_deeply [ sort $obj->variables() ],
-	    [ qw{ $x } ],
-	    q{"${x}[0]" interpolated variables};
-    }
+    is_deeply [ sort $obj->variables() ],
+	[ qw{ $x } ],
+	q{"${x}[0]" interpolated variables};
     cmp_ok $obj->postderef(), '==', 1, q{"${x}[0]" postderef};
     cmp_ok scalar $obj->elements(), '==', 5,
 	q{Number of elements of "${x}[0]"};
@@ -862,11 +806,9 @@ if ( ok $obj, q{Able to parse "${x}[0]"} ) {
 	    q{"${x}[0]" child 0 previous sibling};
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
 	    q{"${x}[0]" child 0 next sibling};
-	if ( eval { require PPI::Document; 1 } ) {
-	    is_deeply [ sort $kid->variables() ],
-		[ qw{ $x } ],
-		q{"${x}[0]" child 0 interpolated variables};
-	}
+	is_deeply [ sort $kid->variables() ],
+	    [ qw{ $x } ],
+	    q{"${x}[0]" child 0 interpolated variables};
     }
     if ( my $kid = $obj->child( 1 ) ) {
 	ok $kid->isa( 'PPIx::QuoteLike::Token::String' ),
@@ -894,11 +836,9 @@ if ( ok $obj, q{Able to parse "$x[$[]"} ) {
     is $obj->__get_value( 'start' ), q{"}, q{Start delimiter of "$x[$[]"};
     is $obj->__get_value( 'finish' ), q{"}, q{Finish delimiter of "$x[$[]"};
     is $obj->encoding(), undef, q{"$x[$[]" encoding};
-    if ( eval { require PPI::Document; 1 } ) {
-	is_deeply [ sort $obj->variables() ],
-	    [ qw{ $[ @x } ],
-	    q{"$x[$[]" interpolated variables};
-    }
+    is_deeply [ sort $obj->variables() ],
+	[ qw{ $[ @x } ],
+	q{"$x[$[]" interpolated variables};
     cmp_ok $obj->postderef(), '==', 1, q{"$x[$[]" postderef};
     cmp_ok scalar $obj->elements(), '==', 4,
 	q{Number of elements of "$x[$[]"};
@@ -917,11 +857,9 @@ if ( ok $obj, q{Able to parse "$x[$[]"} ) {
 	    q{"$x[$[]" child 0 previous sibling};
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
 	    q{"$x[$[]" child 0 next sibling};
-	if ( eval { require PPI::Document; 1 } ) {
-	    is_deeply [ sort $kid->variables() ],
-		[ qw{ $[ @x } ],
-		q{"$x[$[]" child 0 interpolated variables};
-	}
+	is_deeply [ sort $kid->variables() ],
+	    [ qw{ $[ @x } ],
+	    q{"$x[$[]" child 0 interpolated variables};
     }
 }
 
