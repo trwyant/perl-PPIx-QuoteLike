@@ -53,9 +53,10 @@ our $VERSION = '0.004';
 sub dump : method {	## no critic (ProhibitBuiltinHomonyms)
     my ( $class, $source, %arg ) = @_;
     my $rslt;
+    my $margin = ' ' x ( $arg{margin} || 0 );
     foreach my $obj ( $class->_source_to_dumpers( $source, %arg ) ) {
 	my $src = $obj->{object}->source();
-	$rslt .= "\n$src";
+	$rslt .= "\n$margin$src";
 	if ( _isa( $src, 'PPI::Element' ) and my $loc = $src->location() ) {
 	    $rslt .= sprintf ' %s line %d column %d',
 		_dor( $loc->[4], $obj->{file}, '?' ),
@@ -95,6 +96,9 @@ sub list {
 	$selector = sub { return $obj->children() };
     }
     foreach my $elem ( $selector->() ) {
+	$self->{significant}
+	    and not $elem->significant()
+	    and next;
 	my @line = (
 	    ref $elem,
 	    _quote( $elem->content() ),

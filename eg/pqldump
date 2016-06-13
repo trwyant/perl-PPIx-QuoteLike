@@ -14,7 +14,15 @@ our $VERSION = '0.004';
 my %opt;
 
 GetOptions( \%opt,
-    qw{ encoding=s perl_version|perl-version! ppi! tokens! variables! },
+    qw{
+	encoding=s indent=i margin=i
+	perl_version|perl-version! ppi! significant!
+	tokens! variables!
+    },
+    'whitespace!'	=> sub {
+	$opt{significant} = !$_[1];
+	return;
+    },
     help => sub { pod2usage( { -verbose => 2 } ) },
 ) or pod2usage( { -verbose => 0 } );
 
@@ -22,7 +30,7 @@ defined $opt{encoding}
     and binmode STDOUT, ":encoding($opt{encoding})";
 
 my @dumper_arg = map { $_ => $opt{$_} }
-    qw{ perl_version ppi tokens variables };
+    qw{ indent margin perl_version ppi significant tokens variables };
 
 foreach my $arg ( @ARGV ) {
     print PPIx::QuoteLike::Dumper->dump( $arg, @dumper_arg );
@@ -57,6 +65,23 @@ file, in which case the file's encoding is derived from its PPI parse.
 This option displays the documentation for this script. The script then
 exits.
 
+=head2 -indent
+
+ -indent 4
+
+This option controls the number of spaces each level of structure is
+indented.
+
+The default is C<-indent 2>.
+
+=head2 -margin
+
+ -margin 2
+
+This option controls the number of spaces of left margin.
+
+The default is C<-margin 0>.
+
 =head2 -perl-version
 
 If asserted, this option causes the minimum Perl version (and the
@@ -70,6 +95,15 @@ If asserted, this option causes a PPI dump on any interpolations found.
 L<PPI|PPI> must be installed for this to work.
 
 The default is C<-noppi>.
+
+
+=head2 -significant
+
+If this option is asserted, only significant tokens are dumped. As of
+version 0.004, this only has effect in combination with C<-tokens>,
+since all tokens interior to the string are significant.
+
+The default is C<-nosignificant>.
 
 =head2 -tokens
 
@@ -89,9 +123,21 @@ The default is C<-novariables>.
 
 This option displays the version of this script. The script then exits.
 
+=head2 -whitespace
+
+This option is the inverse of L<-significant|/-significant>, and is
+added for quasi-compatibility with the L<Perl::Critic|Perl::Critic>
+C<ppidump> tool.
+
+The default is (and must be) C<-whitespace>.
+
 =head1 DETAILS
 
-<<< replace boiler plate >>>
+This Perl script is a command-line interface to
+L<PPIx::QuoteLike::Dumper|PPIx::QuoteLike::Dumper>'s
+L<dump()|PPIx::QuoteLike::Dumper/dump> method. The arguments can be
+either literals or files. For files, all literals in the file are
+dumped.
 
 =head1 AUTHOR
 
