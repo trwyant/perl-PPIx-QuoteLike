@@ -11,7 +11,7 @@ use PPI::Dumper;
 use PPIx::QuoteLike;
 use Scalar::Util ();
 
-our $VERSION = '0.003';
+our $VERSION = '0.004';
 
 {
     my $default = {

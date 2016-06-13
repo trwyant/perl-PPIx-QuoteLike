@@ -1,3 +1,8 @@
+0.004		2016-06-13	T. R. Wyant
+  Require PPI, which was formerly optional. This is because I decided
+    that the variables() method (which needs it) was one of the
+    fundamental points of the module.
+
 0.003		2016-06-12	T. R. Wyant
   Another attempt to make old Perls work. Version 0.002 assumed I could
     have other interpolations in a regex with (??{...}), but this turned

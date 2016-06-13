@@ -9,7 +9,7 @@ use Carp;
 
 use base qw{ PPIx::QuoteLike::Token };
 
-our $VERSION = '0.003';
+our $VERSION = '0.004';
 
 {
     # TODO make this a state variable when we can require Perl 5.10.
