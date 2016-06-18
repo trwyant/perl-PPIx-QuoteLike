@@ -15,10 +15,13 @@ our $VERSION = '0.004';
 
 sub ppi {
     my ( $self ) = @_;
-    ( my $content = $self->content() ) =~
-	s/ \A ( [\$\@] (?: \# \$? | \$* ) )
-	\{ ( @{[ VARIABLE_RE ]} ) \} \z /$1$2/smxo;
-    return PPI::Document->new( \$content, readonly => 1 )
+    unless ( $self->{ppi} ) {
+	( my $content = $self->content() ) =~
+	    s/ \A ( [\$\@] (?: \# \$? | \$* ) )
+	    \{ ( @{[ VARIABLE_RE ]} ) \} \z /$1$2/smxo;
+	$self->{ppi} = PPI::Document->new( \$content, readonly => 1 );
+    }
+    return $self->{ppi};
 }
 
 {
