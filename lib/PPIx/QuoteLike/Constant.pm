@@ -23,6 +23,7 @@ use constant MINIMUM_PERL	=> '5.000';
 # only '@' and '*').
 use constant VARIABLE_RE => qr/
 	[[:alpha:]_]\w* (?: :: [[:alpha:]_] \w* )* |
+	\^ [A-Z_] |
 	[0-9]+ |
 	[-!"#\$%&'()+,.\/:;<=>?[\\\]^_`{|}~]
     /smx;
