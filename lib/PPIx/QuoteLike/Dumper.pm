@@ -89,7 +89,7 @@ sub list {
 	    qw{ type start finish };
 	push @rslt,
 	    join "\t", ref $obj, $string,
-	    _format_attr( $obj, qw{ failures interpolates } ),
+	    _format_attr( $obj, qw{ encoding failures interpolates } ),
 	    $self->_perl_version( $obj ),
 	    $self->_variables( $obj ),
 	    ;
