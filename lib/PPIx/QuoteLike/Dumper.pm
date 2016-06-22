@@ -54,6 +54,7 @@ sub dump : method {	## no critic (ProhibitBuiltinHomonyms)
     my ( $class, $source, %arg ) = @_;
     my $rslt;
     my $margin = ' ' x ( $arg{margin} || 0 );
+    my $none = delete $arg{none};
     foreach my $obj ( $class->_source_to_dumpers( $source, %arg ) ) {
 	my $src = $obj->{object}->source();
 	$rslt .= "\n$margin$src";
@@ -66,7 +67,10 @@ sub dump : method {	## no critic (ProhibitBuiltinHomonyms)
     }
     defined $rslt
 	and return $rslt;
-    return;
+    defined $none
+	or return;
+    $none =~ s/ (?: \A | (?<! \n ) ) \z /\n/smx;
+    return $none;
 }
 
 sub list {
@@ -410,6 +414,22 @@ L<PPI::Node|PPI::Node>.
 
 Otherwise the first argument is handled just like L<new()|/new> would
 handle it.
+
+The return is the string representation of the dump.
+
+In addition to the optional arguments accepted by L<new()|/new>, the
+following can be specified:
+
+=over
+
+=item none
+
+This argument specifies a string to return if no dump can be produced
+(typically because the first argument is neither a file name nor text
+that is recognized by this package). If unspecified, or specified as
+C<undef>, nothing is returned in this case.
+
+=back 
 
 The output for an individual quote-like object differs from the
 L<string()|/string> output on the same object in that it is preceded by

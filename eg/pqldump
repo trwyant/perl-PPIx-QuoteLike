@@ -35,7 +35,8 @@ my @dumper_arg = map { $_ => $opt{$_} } qw{
 };
 
 foreach my $arg ( @ARGV ) {
-    print PPIx::QuoteLike::Dumper->dump( $arg, @dumper_arg );
+    print PPIx::QuoteLike::Dumper->dump( $arg, @dumper_arg,
+	none => "$arg not recognized by PPIx::Regexp" );
 }
 
 __END__
