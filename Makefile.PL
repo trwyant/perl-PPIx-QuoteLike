@@ -7,6 +7,7 @@ use lib qw{ inc };
 
 use ExtUtils::MakeMaker;
 use My::Module::Meta;
+use My::Module::Recommend;
 
 (my $mmv = ExtUtils::MakeMaker->VERSION) =~ s/_//g;
 
@@ -20,6 +21,7 @@ my %args = (
     'dist' => {COMPRESS => 'gzip', SUFFIX => 'gz'},
     AUTHOR => 'Thomas R. Wyant, III F<wyant at cpan dot org>',
     ABSTRACT => 'Parse Perl string literals and string-literal-like things.',
+    realclean	=> { FILES => 'cover_db xt/author/optionals' },
 );
 
 $mmv >= 6.31
@@ -36,6 +38,8 @@ $mmv >= 6.5501
     or $mmv >= 6.4501
     and $args{META_MERGE}{build_requires} = $meta->build_requires();
 
+My::Module::Recommend->recommend();
+
 WriteMakefile (%args);
 
 sub MY::postamble {
@@ -49,9 +53,10 @@ sub MY::postamble {
 
     return <<"EOD";
 
-AUTHORTEST_FILES = t/*.t xt/author/*.t
+AUTHORTEST_FILES = t/*.t xt/author/*.t xt/author/optionals/*.t
 
 authortest :: pure_all
+	\$(FULLPERLRUN) "-Iinc" "-MMy::Module::Recommend" "-e" "My::Module::Recommend->make_optional_modules_tests()"
 	AUTHOR_TESTING=1 $authortest
 
 testcover :: pure_all

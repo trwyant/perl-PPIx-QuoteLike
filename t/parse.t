@@ -863,6 +863,80 @@ if ( ok $obj, q{Able to parse "$x[$[]"} ) {
     }
 }
 
+$obj = PPIx::QuoteLike->new( q/"$${foo}"/ );
+if ( ok $obj, q{Able to parse "$${foo}"} ) {
+    cmp_ok $obj->failures(), '==', 0, q{Failures parsing "$${foo}"};
+    cmp_ok $obj->interpolates(), '==', 1, q{Does "$${foo}" interpolate};
+    is $obj->content(), q/"$${foo}"/, q{Can recover "$${foo}"};
+    is $obj->__get_value( 'type' ), q{}, q{Type of "$${foo}"};
+    is $obj->delimiters(), q{""}, q{Delimiters of "$${foo}"};
+    is $obj->__get_value( 'start' ), q{"}, q{Start delimiter of "$${foo}"};
+    is $obj->__get_value( 'finish' ), q{"}, q{Finish delimiter of "$${foo}"};
+    is $obj->encoding(), undef, q{"$${foo}" encoding};
+    is_deeply [ sort $obj->variables() ],
+	[ qw{ $foo } ],
+	q{"$${foo}" interpolated variables};
+    cmp_ok $obj->postderef(), '==', 1, q{"$${foo}" postderef};
+    cmp_ok scalar $obj->elements(), '==', 4,
+	q{Number of elements of "$${foo}"};
+    cmp_ok scalar $obj->children(), '==', 1,
+	q{Number of children of "$${foo}"};
+    if ( my $kid = $obj->child( 0 ) ) {
+	ok $kid->isa( 'PPIx::QuoteLike::Token::Interpolation' ),
+	    q{"$${foo}" child 0 class};
+	is $kid->content(), q/$${foo}/,
+	    q{"$${foo}" child 0 content};
+	is $kid->error(), undef,
+	    q{"$${foo}" child 0 error};
+	cmp_ok $kid->parent(), '==', $obj,
+	    q{"$${foo}" child 0 parent};
+	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 0 - 1 ),
+	    q{"$${foo}" child 0 previous sibling};
+	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
+	    q{"$${foo}" child 0 next sibling};
+	is_deeply [ sort $kid->variables() ],
+	    [ qw{ $foo } ],
+	    q<"$${foo}" child 0 interpolated variables>;
+    }
+}
+
+$obj = PPIx::QuoteLike->new( q/"${$}"/ );
+if ( ok $obj, q{Able to parse "${$}"} ) {
+    cmp_ok $obj->failures(), '==', 0, q{Failures parsing "${$}"};
+    cmp_ok $obj->interpolates(), '==', 1, q{Does "${$}" interpolate};
+    is $obj->content(), q/"${$}"/, q{Can recover "${$}"};
+    is $obj->__get_value( 'type' ), q{}, q{Type of "${$}"};
+    is $obj->delimiters(), q{""}, q{Delimiters of "${$}"};
+    is $obj->__get_value( 'start' ), q{"}, q{Start delimiter of "${$}"};
+    is $obj->__get_value( 'finish' ), q{"}, q{Finish delimiter of "${$}"};
+    is $obj->encoding(), undef, q<"${$}" encoding>;
+    is_deeply [ sort $obj->variables() ],
+	[ qw{ $$ } ],
+	q{"${$}" interpolated variables};
+    cmp_ok $obj->postderef(), '==', 1, q{"${$}" postderef};
+    cmp_ok scalar $obj->elements(), '==', 4,
+	q{Number of elements of "${$}"};
+    cmp_ok scalar $obj->children(), '==', 1,
+	q{Number of children of "${$}"};
+    if ( my $kid = $obj->child( 0 ) ) {
+	ok $kid->isa( 'PPIx::QuoteLike::Token::Interpolation' ),
+	    q{"${$}" child 0 class};
+	is $kid->content(), q/${$}/,
+	    q{"${$}" child 0 content};
+	is $kid->error(), undef,
+	    q{"${$}" child 0 error};
+	cmp_ok $kid->parent(), '==', $obj,
+	    q{"${$}" child 0 parent};
+	cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 0 - 1 ),
+	    q{"${$}" child 0 previous sibling};
+	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
+	    q{"${$}" child 0 next sibling};
+	is_deeply [ sort $kid->variables() ],
+	    [ qw{ $$ } ],
+	    q{"${$}" child 0 interpolated variables};
+    }
+}
+
 done_testing;
 
 sub PPIx::QuoteLike::__get_value {

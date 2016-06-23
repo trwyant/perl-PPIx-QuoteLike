@@ -8,6 +8,7 @@ use warnings;
 use Carp;
 use PPI::Document;
 use PPIx::QuoteLike::Constant qw{ VARIABLE_RE };
+use PPIx::QuoteLike::Utils qw{ __variables };
 
 use base qw{ PPIx::QuoteLike::Token };
 
@@ -16,62 +17,21 @@ our $VERSION = '0.004';
 sub ppi {
     my ( $self ) = @_;
     unless ( $self->{ppi} ) {
-	( my $content = $self->content() ) =~
-	    s/ \A ( [\$\@] (?: \# \$? | \$* ) )
-	    \{ ( @{[ VARIABLE_RE ]} ) \} \z /$1$2/smxo;
+##	The following code is tempting, but I really, really want to
+##	avoid enabling it, because I may hit uses of ${something} that
+##	it does not cover.
+##	( my $content = $self->content() ) =~
+##	    s/ \A ( [\$\@] (?: \# \$? | \$* ) )
+##	    \{ ( @{[ VARIABLE_RE ]} ) \} \z /$1$2/smxo;
+	my $content = $self->content();
 	$self->{ppi} = PPI::Document->new( \$content, readonly => 1 );
     }
     return $self->{ppi};
 }
 
-{
-
-    # TODO make this a state varable one we can require Perl 5.10.
-    my $postderef = { map { $_ => 1 } qw{ @* %* } };
-
-    sub variables {
-	my ( $self ) = @_;
-
-	require PPIx::QuoteLike;
-
-	my %var;
-
-	my $ppi = $self->ppi();
-	foreach my $sym ( @{ $ppi->find( 'PPI::Token::Symbol' ) || [] } ) {
-	    # The problem we're solving here is that PPI parses postfix
-	    # dereference as though it makes reference to non-existent
-	    # punctuation variables '@*' or '%*'. The following
-	    # statement omits these from output if they are preceded by
-	    # the '->' operator.
-	    my $prev;
-	    $postderef->{ $sym->content() }
-		and $prev = $sym->sprevious_sibling()
-		and $prev->isa( 'PPI::Token::Operator' )
-		and '->' eq $prev->content()
-		and next;
-	    $var{ $sym->symbol() } = 1;
-	}
-
-	foreach my $class ( qw{
-		PPI::Token::Quote
-		PPI::Token::QuoteLike::Backtick
-		PPI::Token::QuoteLike::Command
-		PPI::Token::QuoteLike::Readline
-		PPI::Token::HereDoc
-	    } ) {
-	    foreach my $elem ( @{ $ppi->find( $class ) || [] } ) {
-		my $ql = PPIx::QuoteLike->new( $elem )
-		    or next;
-		$ql->interpolates()
-		    or next;
-		foreach my $sym ( $ql->variables() ) {
-		    $var{ $sym } = 1;
-		}
-	    }
-	}
-
-	return ( keys %var );
-    }
+sub variables {
+    my ( $self ) = @_;
+    return __variables( $self->ppi() );
 }
 
 sub __perl_version_introduced {

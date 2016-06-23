@@ -8,6 +8,9 @@ use Test::More 0.88;
 require_ok 'PPIx::QuoteLike::Constant'
     or BAIL_OUT $@;
 
+require_ok 'PPIx::QuoteLike::Utils'
+    or BAIL_OUT $@;
+
 require_ok 'PPIx::QuoteLike::Token'
     or BAIL_OUT $@;
 

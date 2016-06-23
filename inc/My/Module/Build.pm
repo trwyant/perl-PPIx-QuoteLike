@@ -6,6 +6,8 @@ use warnings;
 use base qw{ Module::Build };
 
 use Carp;
+# use lib 'inc';	# Already done because this module is running.
+use My::Module::Recommend;
 
 
 sub ACTION_authortest {
@@ -13,8 +15,13 @@ sub ACTION_authortest {
 
     local $ENV{AUTHOR_TESTING} = 1;
 
-    $self->depends_on( 'build' );
-    $self->test_files( qw{ t xt/author } );
+    my @depends_on = ( qw{ build } );
+    -e 'META.json' or push @depends_on, 'distmeta';
+    $self->depends_on( @depends_on );
+
+    $self->test_files( qw{ t xt/author },
+	My::Module::Recommend->make_optional_modules_tests(),
+    );
     $self->depends_on( 'test' );
 
     return;

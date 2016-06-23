@@ -8,6 +8,7 @@ use lib qw{ inc };
 use Module::Build;
 use My::Module::Build;
 use My::Module::Meta;
+use My::Module::Recommend;
 
 (my $mbv = Module::Build->VERSION()) =~ s/_//g;
 
@@ -22,6 +23,7 @@ my %args = (
 	perl => $meta->requires_perl(),
     ),
     license => 'perl',
+    add_to_cleanup => [ qw{ cover_db xt/author/optionals } ],
 );
 
 
@@ -30,6 +32,8 @@ $mbv >= 0.28
 
 $mbv >= 0.34
     and $args{auto_configure_requires} = 0;	# Don't require Module::Build
+
+My::Module::Recommend->recommend();
 
 my $bldr = My::Module::Build->new (%args);
 

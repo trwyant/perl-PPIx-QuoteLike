@@ -3,6 +3,8 @@ Changes
 eg/pqldump
 inc/My/Module/Build.pm
 inc/My/Module/Meta.pm
+inc/My/Module/Recommend.pm
+inc/My/Module/Recommend/Any.pm
 lib/PPIx/QuoteLike.pm
 lib/PPIx/QuoteLike/Constant.pm
 lib/PPIx/QuoteLike/Dumper.pm
@@ -13,6 +15,7 @@ lib/PPIx/QuoteLike/Token/Interpolation.pm
 lib/PPIx/QuoteLike/Token/String.pm
 lib/PPIx/QuoteLike/Token/Structure.pm
 lib/PPIx/QuoteLike/Token/Unknown.pm
+lib/PPIx/QuoteLike/Utils.pm
 lib/PPIx/QuoteLike/Token/Whitespace.pm
 LICENSES/Artistic
 LICENSES/Copying
