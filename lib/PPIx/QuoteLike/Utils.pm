@@ -22,7 +22,7 @@ our @CARP_NOT = qw{
 
 our @EXPORT_OK = qw{ __variables };
 
-our $VERSION = '0.004';
+our $VERSION = '0.005';
 
 require PPIx::QuoteLike;
 

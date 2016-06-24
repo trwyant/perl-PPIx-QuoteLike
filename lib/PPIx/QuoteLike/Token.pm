@@ -8,7 +8,7 @@ use warnings;
 use Carp;
 use PPIx::QuoteLike::Constant qw{ MINIMUM_PERL };
 
-our $VERSION = '0.004';
+our $VERSION = '0.005';
 
 # Private to this package.
 sub __new {

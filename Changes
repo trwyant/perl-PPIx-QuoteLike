@@ -1,3 +1,18 @@
+0.005		2016-06-23	T. R. Wyant
+  Fix problem handling nested brackets.
+
+  Fix various corner cases, including such things as '${^O}', '${]}',
+    and even '$${$_[0]}', which turned out to be '$$' followed by
+    '$_[0]'.
+
+  Also pulled the variable recognition out into a separate module in
+    anticipation of it being used other places.
+
+  Dumper message if arg does not parse
+
+  Recognize "$^O" (e.g.) as interpolating $^O, not $^ followed by a
+    literal "O".
+
 0.004		2016-06-13	T. R. Wyant
   Require PPI, which was formerly optional. This is because I decided
     that the variables() method (which needs it) was one of the
