@@ -580,15 +580,20 @@ sub _link_elems {
 }
 
 {
-    my %cache;
+    our %REGEXP_CACHE;
+
     my %matching_bracket = qw/ ( ) [ ] { } < > /;
 
     sub _match_enclosed {
 	my ( $left ) = @_;
+	my $ql = quotemeta $left;
+	$REGEXP_CACHE{$ql}
+	    and return $REGEXP_CACHE{$ql};
 	if ( my $right = $matching_bracket{$left} ) {
+
 =begin comment
 
-	    return ( $cache{$left} =
+	    return ( $REGEXP_CACHE{$left} =
 		qr/ (
 		    \Q$left\E
 		    (?:
@@ -604,31 +609,34 @@ sub _link_elems {
 =end comment
 
 =cut
+
 	    # Based on Regexp::Common $RE{balanced} 2.113 (because I
 	    # can't use (?-1)
-	    $cache{$left}
-		and return $cache{$left};
+
 	    my $ql = quotemeta $left;
 	    my $qr = quotemeta $right;
-	    my $r  = quotemeta "(??{ \$cache{'$ql'} } )";
-	    my $re = <<"EOD";
-qr/
-    $ql
-    (?:
-	(?> [^\\\\$ql$qr]+ ) |
-	(?> \\\$ [$ql$qr] ) |
-	(?> \\\\ . ) |
-	$r
-    )*
-    $qr
-/x
-EOD
-	    $cache{$left} = eval $re	## no critic (ProhibitStringyEval)
-		or confess( "Failed to build re $re: $@" );
-	    return $cache{$left};
+	    my $pkg = __PACKAGE__;
+	    my $r  = "(??{ \$${pkg}::REGEXP_CACHE{'$ql'} })";
+
+	    my @parts = (
+		"(?>[^\\\\$ql$qr]+)",
+		"(?>\\\$[$ql$qr])",
+		'(?>\\\\.)',
+		$r,
+	    );
+
+	    {
+		use re qw{ eval };
+		local $" = '|';
+		$REGEXP_CACHE{$ql} = qr/($ql(?:@parts)*$qr)/;
+	    }
+
+	    return $REGEXP_CACHE{$ql};
+
 	} else {
+
 	    # Based on Regexp::Common $RE{delimited}{-delim=>'`'}
-	    return ( $cache{$left} ||=
+	    return ( $REGEXP_CACHE{$ql} ||=
 		qr< (?:
 		    (?: \Q$left\E )
 		    (?: [^\\\Q$left\E]* (?: \\ . [^\\\Q$left\E]* )* )
