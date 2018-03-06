@@ -13,6 +13,8 @@ use Scalar::Util ();
 
 our $VERSION = '0.005';
 
+use constant SCALAR_REF	=> ref \0;
+
 {
     my $default = {
 	encoding	=> undef,
@@ -256,7 +258,7 @@ sub _source_to_dumpers {
 		and return $class->new( $path, %arg );
 	}
     } elsif ( my $ref = ref $path ) {
-	'SCALAR' eq $ref
+	SCALAR_REF eq $ref
 	    or return;
 	return $class->_doc_to_dumper( $path, %arg );
     } else {

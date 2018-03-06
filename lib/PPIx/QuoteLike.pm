@@ -20,8 +20,7 @@ use Scalar::Util ();
 
 our $VERSION = '0.005';
 
-use constant ARRAY	=> ref [];
-use constant CODE	=> ref sub {};
+use constant CODE_REF	=> ref sub {};
 
 use constant ILLEGAL_FIRST	=>
     'Tokenizer found illegal first characters';
@@ -269,7 +268,7 @@ sub failures {
 sub find {
     my ( $self, $target ) = @_;
 
-    my $check = CODE eq ref $target ? $target :
+    my $check = CODE_REF eq ref $target ? $target :
     ref $target ? croak 'find() target may not be ' . ref $target :
     sub { $_[0]->isa( $target ) };
     my @found;
