@@ -8,17 +8,11 @@ use warnings;
 use base qw{ Exporter };
 
 use Carp;
-use PPIx::QuoteLike::Constant qw{ VARIABLE_RE };
+use PPIx::QuoteLike::Constant qw{ VARIABLE_RE @CARP_NOT };
 use Scalar::Util ();
 
 use constant LEFT_CURLY		=> q<{>;
 use constant RIGHT_CURLY	=> q<}>;
-
-our @CARP_NOT = qw{
-    PPIx::QuoteLike
-    PPIx::QuoteLike::Token
-    PPIx::QuoteLike::Token::Interpolation
-};
 
 our @EXPORT_OK = qw{ __variables };
 

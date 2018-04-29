@@ -8,7 +8,7 @@ use warnings;
 use Carp;
 use Encode ();
 use List::Util ();
-use PPIx::QuoteLike::Constant qw{ MINIMUM_PERL VARIABLE_RE };
+use PPIx::QuoteLike::Constant qw{ MINIMUM_PERL VARIABLE_RE @CARP_NOT };
 use PPIx::QuoteLike::Token::Control;
 use PPIx::QuoteLike::Token::Delimiter;
 use PPIx::QuoteLike::Token::Interpolation;

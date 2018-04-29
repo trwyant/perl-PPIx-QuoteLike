@@ -7,7 +7,7 @@ use warnings;
 
 use Carp;
 use PPI::Document;
-use PPIx::QuoteLike::Constant qw{ VARIABLE_RE };
+use PPIx::QuoteLike::Constant qw{ VARIABLE_RE @CARP_NOT };
 use PPIx::QuoteLike::Utils qw{ __variables };
 
 use base qw{ PPIx::QuoteLike::Token };

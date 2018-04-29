@@ -9,6 +9,7 @@ use Carp;
 use PPI::Document;
 use PPI::Dumper;
 use PPIx::QuoteLike;
+use PPIx::QuoteLike::Constant qw{ @CARP_NOT };
 use Scalar::Util ();
 
 our $VERSION = '0.005';

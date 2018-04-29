@@ -5,9 +5,9 @@ use 5.006;
 use strict;
 use warnings;
 
-use Carp;
-
 use base qw{ PPIx::QuoteLike::Token };
+
+use PPIx::QuoteLike::Constant qw{ @CARP_NOT };
 
 our $VERSION = '0.005';
 

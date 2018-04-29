@@ -10,9 +10,25 @@ use base qw{ Exporter };
 
 our $VERSION = '0.005';
 
+our @CARP_NOT = qw{
+    PPIx::QuoteLike
+    PPIx::QuoteLike::Constant
+    PPIx::QuoteLike::Dumper
+    PPIx::QuoteLike::Token
+    PPIx::QuoteLike::Token::Control
+    PPIx::QuoteLike::Token::Delimiter
+    PPIx::QuoteLike::Token::Interpolation
+    PPIx::QuoteLike::Token::String
+    PPIx::QuoteLike::Token::Structure
+    PPIx::QuoteLike::Token::Unknown
+    PPIx::QuoteLike::Token::Whitespace
+    PPIx::QuoteLike::Utils
+};
+
 our @EXPORT_OK = qw{
     MINIMUM_PERL
     VARIABLE_RE
+    @CARP_NOT
 };
 
 use constant MINIMUM_PERL	=> '5.000';
@@ -53,6 +69,12 @@ default.
 =head1 CONSTANTS
 
 The following importable constants are provided:
+
+=head2 @CARP_NOT
+
+This global variable contains the names of all modules in the package.
+It's not a constant in the sense of C<use constant>, but needs to live
+here for heredity reasons.
 
 =head2 MINIMUM_PERL
 

@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 use Carp;
-use PPIx::QuoteLike::Constant qw{ MINIMUM_PERL };
+use PPIx::QuoteLike::Constant qw{ MINIMUM_PERL @CARP_NOT };
 
 our $VERSION = '0.005';
 
