@@ -1,3 +1,64 @@
+0.005_01	2018-06-28	T. R. Wyant
+    Only standalone grapheme delimiters allowed starting w/ 5.29.0
+
+    This actually means significantly expanding the delimiters allowed, and
+    then having perl_version_removed() return '5.029' if the delimiter
+    matches /\p{Mark}/. This code does not operate under Perl 5.6 because it
+    can not compile the regular expression. Whether PPI will actually
+    generate a token with such delimiters is unknown to me.
+
+    Collateral with this, accept word characters as delimiters, but only
+    with at least one space between the operator and the expression -- that
+    is, 'qq xyx' is OK, but 'qqxyx' is not.
+
+commit d87f859bf12889a612ce5585ba0f374b62b52f47
+Author: Tom Wyant <wyant@cpan.org>
+Date:   Thu Jun 21 16:31:42 2018 -0400
+
+    Add tests with postfix deref.
+
+commit 471e3a67809b69cba9ae8660fb6e8699dc3df4dd
+Author: Tom Wyant <wyant@cpan.org>
+Date:   Sun Apr 29 15:49:47 2018 -0400
+
+    Complete @CARP_NOT coverage.
+
+commit e04c04e7d36601735508d8e4fce09f7c9503cfdc
+Author: Tom Wyant <wyant@cpan.org>
+Date:   Tue Mar 6 00:16:49 2018 -0500
+
+    Clean up manifest constants for ref names.
+
+commit fdc2eed513a4f8ec4159d0c41b312ef2ebc72f77
+Author: Tom Wyant <wyant@cpan.org>
+Date:   Tue Mar 6 00:13:28 2018 -0500
+
+    Update copyright to 2018.
+
+commit 6b117c3fdc6687e5cdab5d9578542d2a43b4bc64
+Author: Tom Wyant <wyant@cpan.org>
+Date:   Sun Jan 8 12:57:35 2017 -0500
+
+    Ditch 'use base' from inc/ files.
+    
+    This was only in inc/My/Module/Build.pm. It was replaced by a 'use'
+    followed by assignment to @ISA.
+    
+    The lib/ files are untouched because, at least in theory, this module
+    needs to co-exist with Perl::Critic.
+
+commit d3318b102784b1bd767add129651433e303488a8
+Author: Tom Wyant <wyant@cpan.org>
+Date:   Mon Jan 2 10:46:40 2017 -0500
+
+    Update copyright to 2017.
+
+commit 7f79d395372817b38572261f77c0e061efaf4b42
+Author: Tom Wyant <wyant@cpan.org>
+Date:   Tue Nov 22 18:47:56 2016 -0500
+
+    xt/author/minimum_perl.t now checks 'use x.xxx'
+
 0.005		2016-06-23	T. R. Wyant
   Fix problem handling nested brackets.
 

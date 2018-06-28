@@ -9,7 +9,7 @@ use base qw{ PPIx::QuoteLike::Token::Structure };
 
 use PPIx::QuoteLike::Constant qw{ @CARP_NOT };
 
-our $VERSION = '0.005';
+our $VERSION = '0.005_01';
 
 use constant MARK_RE => eval 'qr< \p{Mark} >smx'; ## no critic (ProhibitStringyEval,RequireCheckingReturnValueOfEval)
 
