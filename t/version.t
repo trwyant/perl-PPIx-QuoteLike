@@ -6,9 +6,20 @@ use strict;
 use warnings;
 
 use PPIx::QuoteLike;
+use PPIx::QuoteLike::Constant qw{ SUFFICIENT_UTF8_SUPPORT };
 use PPIx::QuoteLike::Token::Control;
+use PPIx::QuoteLike::Token::Delimiter;
 use PPIx::QuoteLike::Token::Interpolation;
 use PPIx::QuoteLike::Token::String;
+
+BEGIN {
+    if ( SUFFICIENT_UTF8_SUPPORT ) {
+	# Have to prevent Perl from parsing 'open' as 'CORE::open'.
+	require 'open.pm';
+	'open'->import( qw{ :std :encoding(utf-8) } );
+    }
+}
+
 use Test::More 0.88;	# Because of done_testing();
 
 my $tok;
@@ -27,6 +38,22 @@ $tok = PPIx::QuoteLike::Token::Control->__new( content => '\F' );
 is $tok->perl_version_introduced(), '5.015008',
     '\\F was introduced in 5.15.8';
 is $tok->perl_version_removed(), undef, '\\F is still here';
+
+$tok = PPIx::QuoteLike::Token::Delimiter->__new( content => q<'> );
+is $tok->perl_version_introduced(), '5.000',
+    q{Delimiter q<'> was introduced in 5.0};
+is $tok->perl_version_removed(), undef, q{Delimiter q<'> is still here};
+
+SKIP: {
+    SUFFICIENT_UTF8_SUPPORT
+	or skip 'Weird delimiters test requires Perl 5.8.1 or above', 2;
+    $tok = PPIx::QuoteLike::Token::Delimiter->__new( content =>
+	qq<\N{COMBINING CIRCUMFLEX ACCENT}> );
+    is $tok->perl_version_introduced(), '5.000',
+	q[Delimiter qq<\N{COMBINING CIRCUMFLEX ACCENT}> was introduced in 5.0 (kinda)];
+    is $tok->perl_version_removed(), '5.029',
+	q[Delimiter qq<\N{COMBINING CIRCUMFLEX ACCENT> removed in 5.029];
+}
 
 $tok = PPIx::QuoteLike::Token::Interpolation->__new( content => '$x' );
 is $tok->perl_version_introduced(), '5.000',

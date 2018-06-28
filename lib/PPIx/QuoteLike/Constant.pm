@@ -27,11 +27,14 @@ our @CARP_NOT = qw{
 
 our @EXPORT_OK = qw{
     MINIMUM_PERL
+    SUFFICIENT_UTF8_SUPPORT
     VARIABLE_RE
     @CARP_NOT
 };
 
 use constant MINIMUM_PERL	=> '5.000';
+
+use constant SUFFICIENT_UTF8_SUPPORT	=> $] ge '5.008001';
 
 # Match the name of a variable. The user of this needs to anchor it
 # right after the sigil. The line noise is [[:punct:]] as documented in
@@ -81,6 +84,14 @@ here for heredity reasons.
 The minimum version of Perl understood by this parser, as a string. It
 is currently set to C<'5.000'>, since that is the minimum version of
 Perl accessible to the author.
+
+=head2 SUFFICIENT_UTF8_SUPPORT
+
+A Boolean which is true if the running version of Perl has UTF-8 support
+sufficient for our purposes.
+
+Currently that means C<5.8.1> or greater, with the specific requirements
+being C<use open qw{ :std :encoding(utf-8) }> and C</\p{Mark}/>.
 
 =head2 VARIABLE_RE
 

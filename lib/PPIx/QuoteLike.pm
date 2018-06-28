@@ -61,8 +61,12 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 	    and warn "Initial match of $string\n";
 
 	# q<>, qq<>, qx<>
-	if ( $string =~ m/ \A \s* ( q [qx]? ) ( \s* ) ( \W ) /smxgc ) {
+	if ( $string =~ m/ \A \s* ( q [qx]? ) ( \s* ) ( . ) /smxgc ) {
 	    ( $type, $gap, $start_delim ) = ( $1, $2, $3 );
+	    not $gap
+		and $start_delim =~ m< \A \w \z >smx
+		and return $self->_link_elems( $self->_unknown(
+		    $string, ILLEGAL_FIRST ) );
 	    $arg{trace}
 		and warn "Initial match '$type$start_delim'\n";
 	    $self->{interpolates} = 'qq' eq $type ||
