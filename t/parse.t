@@ -6,6 +6,16 @@ use strict;
 use warnings;
 
 use PPIx::QuoteLike;
+use PPIx::QuoteLike::Constant qw{ SUFFICIENT_UTF8_SUPPORT };
+
+BEGIN {
+    if ( SUFFICIENT_UTF8_SUPPORT ) {
+	# Have to prevent Perl from parsing 'open' as 'CORE::open'.
+	require 'open.pm';
+	'open'->import( qw{ :std :encoding(utf-8) } );
+    }
+}
+
 use Test::More 0.88;	# Because of done_testing();
 
 my $obj;
@@ -1150,6 +1160,107 @@ if ( ok $obj, q{Able to parse "<$a->@[0..2]>"} ) {
 	cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 2 + 1 ),
 	    q{"<$a->@[0..2]>" child 2 next sibling};
     }
+}
+
+SKIP: {
+    SUFFICIENT_UTF8_SUPPORT
+	or skip 'Truly weird delimiters test requires Perl 5.8.1 or above', 2;
+
+    $ENV{AUTHOR_TESTING}
+	or skip 'Truly weird delimiters are noisy, therefore author tests', 2;
+
+    my $delim = "\N{U+FFFE}";	# Permanent noncharacter
+
+    $obj = PPIx::QuoteLike->new( qq{qq ${delim}y$delim} );
+    if ( ok $obj, q{Able to parse qq ?y? with noncharacter delimiter} ) {
+	cmp_ok $obj->failures(), '==', 0,
+	    q{Failures parsing qq ?y? with noncharacter delimiter};
+	cmp_ok $obj->interpolates(), '==', 1,
+	    q{Does qq ?y? with noncharacter delimiter interpolate};
+	is $obj->content(), qq{qq ${delim}y$delim},
+	    q{Can recover qq ?y? with noncharacter delimiter};
+	is $obj->__get_value( 'type' ), q{qq},
+	    q{Type of qq ?y? with noncharacter delimiter};
+	is $obj->delimiters(), qq{$delim$delim},
+	    q{Delimiters of qq ?y? with noncharacter delimiter};
+	is $obj->__get_value( 'start' ), $delim,
+	    q{Start delimiter of qq ?y? with noncharacter delimiter};
+	is $obj->__get_value( 'finish' ), $delim,
+	    q{Finish delimiter of qq ?y? with noncharacter delimiter};
+	is $obj->encoding(), undef,
+	    q{qq ?y? with noncharacter delimiter encoding};
+	if ( eval { require PPI::Document; 1 } ) {
+	    is_deeply [ sort $obj->variables() ],
+		[ qw{  } ],
+		q{qq ?y? with noncharacter delimiter interpolated variables};
+	}
+	cmp_ok $obj->postderef(), '==', 1, q{qq ?y? with noncharacter delimiter postderef};
+	cmp_ok scalar $obj->elements(), '==', 5,
+	    q{Number of elements of qq ?y? with noncharacter delimiter};
+	cmp_ok scalar $obj->children(), '==', 1,
+	    q{Number of children of qq ?y? with noncharacter delimiter};
+	if ( my $kid = $obj->child( 0 ) ) {
+	    ok $kid->isa( 'PPIx::QuoteLike::Token::String' ),
+		q{qq ?y? with noncharacter delimiter child 0 class};
+	    is $kid->content(), q{y},
+		q{qq ?y? with noncharacter delimiter child 0 content};
+	    is $kid->error(), undef,
+		q{qq ?y? with noncharacter delimiter child 0 error};
+	    cmp_ok $kid->parent(), '==', $obj,
+		q{qq ?y? with noncharacter delimiter child 0 parent};
+	    cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 0 - 1 ),
+		q{qq ?y? with noncharacter delimiter child 0 previous sibling};
+	    cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
+		q{qq ?y? with noncharacter delimiter child 0 next sibling};
+	}
+    }
+
+    $delim = "\N{U+11FFFF}";	# Illegal character
+
+    $obj = PPIx::QuoteLike->new( qq{qq ${delim}y$delim} );
+    if ( ok $obj, q{Able to parse qq ?y? with illegal character delimiter} ) {
+	cmp_ok $obj->failures(), '==', 0,
+	    q{Failures parsing qq ?y? with illegal character delimiter};
+	cmp_ok $obj->interpolates(), '==', 1,
+	    q{Does qq ?y? with illegal character delimiter interpolate};
+	is $obj->content(), qq{qq ${delim}y$delim},
+	    q{Can recover qq ?y? with illegal character delimiter};
+	is $obj->__get_value( 'type' ), q{qq},
+	    q{Type of qq ?y? with illegal character delimiter};
+	is $obj->delimiters(), qq{$delim$delim},
+	    q{Delimiters of qq ?y? with illegal character delimiter};
+	is $obj->__get_value( 'start' ), $delim,
+	    q{Start delimiter of qq ?y? with illegal character delimiter};
+	is $obj->__get_value( 'finish' ), $delim,
+	    q{Finish delimiter of qq ?y? with illegal character delimiter};
+	is $obj->encoding(), undef,
+	    q{qq ?y? with illegal character delimiter encoding};
+	if ( eval { require PPI::Document; 1 } ) {
+	    is_deeply [ sort $obj->variables() ],
+		[ qw{  } ],
+		q{qq ?y? with illegal character delimiter interpolated variables};
+	}
+	cmp_ok $obj->postderef(), '==', 1, q{qq ?y? with illegal character delimiter postderef};
+	cmp_ok scalar $obj->elements(), '==', 5,
+	    q{Number of elements of qq ?y? with illegal character delimiter};
+	cmp_ok scalar $obj->children(), '==', 1,
+	    q{Number of children of qq ?y? with illegal character delimiter};
+	if ( my $kid = $obj->child( 0 ) ) {
+	    ok $kid->isa( 'PPIx::QuoteLike::Token::String' ),
+		q{qq ?y? with illegal character delimiter child 0 class};
+	    is $kid->content(), q{y},
+		q{qq ?y? with illegal character delimiter child 0 content};
+	    is $kid->error(), undef,
+		q{qq ?y? with illegal character delimiter child 0 error};
+	    cmp_ok $kid->parent(), '==', $obj,
+		q{qq ?y? with illegal character delimiter child 0 parent};
+	    cmp_ok $kid->previous_sibling() || 0, '==', $obj->__kid( 0 - 1 ),
+		q{qq ?y? with illegal character delimiter child 0 previous sibling};
+	    cmp_ok $kid->next_sibling() || 0, '==', $obj->__kid( 0 + 1 ),
+		q{qq ?y? with illegal character delimiter child 0 next sibling};
+	}
+    }
+
 }
 
 done_testing;

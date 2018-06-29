@@ -11,7 +11,18 @@ use PPIx::QuoteLike::Constant qw{ @CARP_NOT };
 
 our $VERSION = '0.005_01';
 
-use constant MARK_RE => eval 'qr< \p{Mark} >smx'; ## no critic (ProhibitStringyEval,RequireCheckingReturnValueOfEval)
+# Perl 5.29.0 disallows unassigned code points and combining code points
+# as delimiters. Unfortunately for me non-characters and illegal
+# characters are explicitly allowed. Still more unfortunately, these
+# match /\p{Unassigned}/. So before I match a deprecated characer, I
+# have to assert that the character is neither a non-character
+# (\p{Noncharacter_code_point}) nor an illegal Unicode character
+# (\P{Any}).
+use constant WEIRD_CHAR_RE => eval ## no critic (ProhibitStringyEval,RequireCheckingReturnValueOfEval)
+'qr<
+    (?! [\p{Noncharacter_code_point}\P{Any}] )
+    [\p{Unassigned}\p{Mark}]
+>smx';
 
 =head2 perl_version_removed
 
@@ -30,12 +41,13 @@ requisite regular expression compiles. Otherwise it return C<undef>.
 
 sub perl_version_removed {
     my ( $self ) = @_;
-    MARK_RE
-	and $self->content() =~ MARK_RE
+    WEIRD_CHAR_RE
+	and $self->content() =~ WEIRD_CHAR_RE
 	and return '5.029';
     # I respectfully disagree with Perl Best Practices on the
-    # following. When this method is called in list context is MUST
+    # following. When this method is called in list context it MUST
     # return undef if that's the right answer, NOT an empty list.
+    # Otherwise hash constructors have the wrong number of elements.
     return undef;	## no critic (ProhibitExplicitReturnUndef)
 }
 
