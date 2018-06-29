@@ -1,3 +1,10 @@
+0.005_02	2018-06-29	T. R. Wyant
+    Perl 5.29.0 also prohibits unassigned code points while explicitly
+    allowing non-characters (permanently unassigned code points) and
+    illegal code points (above 0x10FFFF).
+
+    I did not pick up on this the first time around. Sigh.
+
 0.005_01	2018-06-28	T. R. Wyant
     Only standalone grapheme delimiters allowed starting w/ 5.29.0
 
