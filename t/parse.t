@@ -18,6 +18,8 @@ BEGIN {
 
 use Test::More 0.88;	# Because of done_testing();
 
+use charnames qw{ :full };
+
 my $obj;
 
 $obj = PPIx::QuoteLike->new( q{''} );
@@ -1168,6 +1170,8 @@ SKIP: {
 
     $ENV{AUTHOR_TESTING}
 	or skip 'Truly weird delimiters are noisy, therefore author tests', 2;
+
+    no warnings qw{ utf8};	# Because of truly weird characters
 
     my $delim = "\N{U+FFFE}";	# Permanent noncharacter
 

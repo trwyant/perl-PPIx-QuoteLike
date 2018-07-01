@@ -6,8 +6,12 @@ use strict;
 use warnings;
 
 use Carp;
-use Exporter qw{ import };
+use Exporter;
 
+# Beause the Perl 5.6 Exporter does not export import().
+BEGIN {
+    *import	= \&Exporter::import;
+}
 our $VERSION = '0.005_02';
 
 our @EXPORT_OK = qw{ __any };

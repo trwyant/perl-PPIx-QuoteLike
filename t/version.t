@@ -22,6 +22,8 @@ BEGIN {
 
 use Test::More 0.88;	# Because of done_testing();
 
+use charnames qw{ :full };
+
 my $tok;
 
 $tok = PPIx::QuoteLike::Token::String->__new( content => 'foo' );
@@ -62,6 +64,8 @@ SKIP: {
 
     $ENV{AUTHOR_TESTING}
 	or skip 'Truly weird delimiters are noisy, therefore author tests', 2;
+
+    no warnings qw{ utf8 };	# Because of truly weird characters
 
     $tok = PPIx::QuoteLike::Token::Delimiter->__new( content =>
 	qq<\N{U+FFFE}> );	# permanent noncharacter
