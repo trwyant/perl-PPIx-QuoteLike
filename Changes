@@ -1,3 +1,6 @@
+0.005_03	2018-06-30	T. R. Wyant
+    Fix test failures & warnings under older Perls (I hope)
+
 0.005_02	2018-06-29	T. R. Wyant
     Perl 5.29.0 also prohibits unassigned code points while explicitly
     allowing non-characters (permanently unassigned code points) and
