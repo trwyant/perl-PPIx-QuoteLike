@@ -7,7 +7,7 @@ use warnings;
 
 use base qw{ PPIx::QuoteLike::Token::Structure };
 
-use PPIx::QuoteLike::Constant qw{ @CARP_NOT };
+use PPIx::QuoteLike::Constant qw{ MINIMUM_PERL @CARP_NOT };
 
 our $VERSION = '0.005_03';
 
@@ -23,6 +23,20 @@ use constant WEIRD_CHAR_RE => eval ## no critic (ProhibitStringyEval,RequireChec
     (?! [\p{Noncharacter_code_point}\P{Any}] )
     [\p{Unassigned}\p{Mark}]
 >smx';
+
+=head2 perl_version_introduced
+
+Experimentation with weird delimiters shows that they did not actually
+work until Perl 5.8.3, so we return C<'5.008003'> for such delimiters.
+
+=cut
+
+sub perl_version_introduced {
+    my ( $self ) = @_;
+    $self->content() =~ m/ \A [[:^ascii:]] \z /smx
+	and return '5.008003';
+    return MINIMUM_PERL;
+}
 
 =head2 perl_version_removed
 

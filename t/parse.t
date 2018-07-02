@@ -6,10 +6,12 @@ use strict;
 use warnings;
 
 use PPIx::QuoteLike;
-use PPIx::QuoteLike::Constant qw{ SUFFICIENT_UTF8_SUPPORT };
+use PPIx::QuoteLike::Constant qw{
+    SUFFICIENT_UTF8_SUPPORT_FOR_WEIRD_DELIMITERS
+};
 
 BEGIN {
-    if ( SUFFICIENT_UTF8_SUPPORT ) {
+    if ( SUFFICIENT_UTF8_SUPPORT_FOR_WEIRD_DELIMITERS ) {
 	# Have to prevent Perl from parsing 'open' as 'CORE::open'.
 	require 'open.pm';
 	'open'->import( qw{ :std :encoding(utf-8) } );
@@ -1165,8 +1167,8 @@ if ( ok $obj, q{Able to parse "<$a->@[0..2]>"} ) {
 }
 
 SKIP: {
-    SUFFICIENT_UTF8_SUPPORT
-	or skip 'Truly weird delimiters test requires Perl 5.8.1 or above', 2;
+    SUFFICIENT_UTF8_SUPPORT_FOR_WEIRD_DELIMITERS
+	or skip 'Truly weird delimiters test requires Perl 5.8.3 or above', 2;
 
     $ENV{AUTHOR_TESTING}
 	or skip 'Truly weird delimiters are noisy, therefore author tests', 2;
