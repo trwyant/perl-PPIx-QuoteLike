@@ -1,3 +1,9 @@
+0.005_04	2018-07-02	T. R. Wyant
+    Weird delimiters did not work until 5.8.3.
+    
+    This was determined the hard way. So we return that as the minimum
+    version for non-ASCII delimiters, and skip the tests on earlier Perls.
+
 0.005_03	2018-06-30	T. R. Wyant
     Fix test failures & warnings under older Perls (I hope)
 
