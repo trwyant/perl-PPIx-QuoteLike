@@ -22,14 +22,17 @@ require PPIx::QuoteLike;
 
 # We can't depend on PPIx::Regexp without getting into a circular
 # dependency. I think. But we can sure use it if we can come by it.
-my $have_ppix_regexp = eval {
-    require PPIx::Regexp;
-    1;
+use constant HAVE_PPIX_REGEXP	=> do {
+    local $@ = undef;
+    eval {	## no critic (RequireCheckingReturnValueOfEval)
+	require PPIx::Regexp;
+	1;
+    };
 };
 
 {
 
-    # TODO make these state varables one we can require Perl 5.10.
+    # TODO make these state varables once we can require Perl 5.10.
     my $postderef = { map { $_ => 1 } qw{ @* %* } };
 
     my $cast_allowed_for_bare_bracketed_variable = {
@@ -169,7 +172,7 @@ my $have_ppix_regexp = eval {
 	# By the same token we might have a regexp
 	# TODO for consistency's sake, give PPIx::Regexp a variables()
 	# method.
-	if ( $have_ppix_regexp ) {
+	if ( HAVE_PPIX_REGEXP ) {
 	    foreach my $class ( qw{
 		    PPI::Token::QuoteLike::Regexp
 		    PPI::Token::Regexp::Match
