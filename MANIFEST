@@ -1,6 +1,8 @@
 Build.PL
 Changes
+eg/README
 eg/pqldump
+eg/variables
 inc/My/Module/Build.pm
 inc/My/Module/Meta.pm
 inc/My/Module/Recommend.pm
