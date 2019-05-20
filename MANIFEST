@@ -27,6 +27,7 @@ README
 t/basic.t
 t/dump.t
 t/parse.t
+t/variables.t
 t/version.t
 xt/author/carp_not.t
 xt/author/changes.t

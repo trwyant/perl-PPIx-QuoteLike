@@ -27,9 +27,20 @@ our @CARP_NOT = qw{
 
 our @EXPORT_OK = qw{
     MINIMUM_PERL
+    HAVE_PPIX_REGEXP
     SUFFICIENT_UTF8_SUPPORT_FOR_WEIRD_DELIMITERS
     VARIABLE_RE
     @CARP_NOT
+};
+
+# We can't depend on PPIx::Regexp without getting into a circular
+# dependency. I think. But we can sure use it if we can come by it.
+use constant HAVE_PPIX_REGEXP	=> do {
+    local $@ = undef;
+    eval {	## no critic (RequireCheckingReturnValueOfEval)
+	require PPIx::Regexp;
+	1;
+    };
 };
 
 use constant MINIMUM_PERL	=> '5.000';

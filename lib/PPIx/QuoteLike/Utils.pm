@@ -8,7 +8,7 @@ use warnings;
 use base qw{ Exporter };
 
 use Carp;
-use PPIx::QuoteLike::Constant qw{ VARIABLE_RE @CARP_NOT };
+use PPIx::QuoteLike::Constant qw{ HAVE_PPIX_REGEXP VARIABLE_RE @CARP_NOT };
 use Scalar::Util ();
 
 use constant LEFT_CURLY		=> q<{>;
@@ -19,16 +19,6 @@ our @EXPORT_OK = qw{ __variables };
 our $VERSION = '0.006';
 
 require PPIx::QuoteLike;
-
-# We can't depend on PPIx::Regexp without getting into a circular
-# dependency. I think. But we can sure use it if we can come by it.
-use constant HAVE_PPIX_REGEXP	=> do {
-    local $@ = undef;
-    eval {	## no critic (RequireCheckingReturnValueOfEval)
-	require PPIx::Regexp;
-	1;
-    };
-};
 
 {
 
@@ -42,12 +32,12 @@ use constant HAVE_PPIX_REGEXP	=> do {
 	my ( $ppi ) = @_;
 
 	Scalar::Util::blessed( $ppi )
-	    and $ppi->isa( 'PPI::Node' )
-	    or croak 'Argument must be a PPI::Node';
+	    and $ppi->isa( 'PPI::Element' )
+	    or croak 'Argument must be a PPI::Element';
 
 	my %var;
 
-	foreach my $sym ( @{ $ppi->find( 'PPI::Token::Symbol' ) || [] } ) {
+	foreach my $sym ( _find( $ppi, 'PPI::Token::Symbol' ) ) {
 	    # The problem we're solving here is that PPI parses postfix
 	    # dereference as though it makes reference to non-existent
 	    # punctuation variables '@*' or '%*'. The following
@@ -77,9 +67,7 @@ use constant HAVE_PPIX_REGEXP	=> do {
         # by a Symbol, so as long as nobody decides the '$#' cast causes
         # $elem->symbol() to return something other than '$foo', we're
         # cool.
-        foreach my $elem (
-            @{ $ppi->find( 'PPI::Token::ArrayIndex' ) || [] }
-        ) {
+        foreach my $elem ( _find( $ppi, 'PPI::Token::ArrayIndex' ) ) {
             my $name = $elem->content();
             $name =~ s/ \A \$ [#] /@/smx or next;
 	    $var{$name} = 1;
@@ -91,9 +79,7 @@ use constant HAVE_PPIX_REGEXP	=> do {
         # words in most Perl, we start at the top and work down. Perl
         # also handles punctuation variables specified this way, but
         # since PPI goes berserk when it sees this, we won't bother.
-        foreach my $elem (
-            @{ $ppi->find( 'PPI::Structure::Block' ) || [] }
-        ) {
+        foreach my $elem ( _find( $ppi, 'PPI::Structure::Block' ) ) {
 
             my $previous = $elem->sprevious_sibling()
                 or next;
@@ -157,7 +143,7 @@ use constant HAVE_PPIX_REGEXP	=> do {
 		PPI::Token::QuoteLike::Readline
 		PPI::Token::HereDoc
 	    } ) {
-	    foreach my $elem ( @{ $ppi->find( $class ) || [] } ) {
+	    foreach my $elem ( _find( $ppi, $class ) ) {
 
 		my $ql = PPIx::QuoteLike->new( $elem )
 		    or next;
@@ -178,7 +164,7 @@ use constant HAVE_PPIX_REGEXP	=> do {
 		    PPI::Token::Regexp::Match
 		    PPI::Token::Regexp::Substitute
 		} ) {
-		foreach my $elem ( @{ $ppi->find( $class ) || [] } ) {
+		foreach my $elem ( _find( $ppi, $class ) ) {
 		    my $re = PPIx::Regexp->new( $elem )
 			or next;
 		    foreach my $code ( @{ $re->find(
@@ -193,6 +179,18 @@ use constant HAVE_PPIX_REGEXP	=> do {
 
 	return ( keys %var );
     }
+}
+
+# We want __variables to work when passed a single token. So we go
+# through this to do what we wish PPI did -- return an array for a
+# PPI::Node, or return either the element itself or nothing otherwise.
+sub _find {
+    my ( $elem, $class ) = @_;
+    $elem->isa( 'PPI::Node' )
+	and return @{ $elem->find( $class ) || [] };
+    $elem->isa( $class )
+	and return $elem;
+    return;
 }
 
 # The problem this solves is that PPI can parse '{_}' as containing a
@@ -322,9 +320,10 @@ Despite the leading underscores, this exportable subroutine is public
 and supported. The underscores are so it will not appear to be public
 code to various tools when imported into other code.
 
-This subroutine takes as its only argument a L<PPI::Node|PPI::Node>, and
-returns the names of all variables found in that node, in no particular
-order. Scope is not taken into account.
+This subroutine takes as its only argument a
+L<PPI::Element|PPI::Element>, and returns the names of all variables
+found in that element, in no particular order. Scope is not taken into
+account.
 
 In addition to reporting variables parsed as such by L<PPI|PPI>, and
 various corner cases such as C<${]}> where PPI is blind to the use of
