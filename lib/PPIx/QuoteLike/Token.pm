@@ -104,6 +104,18 @@ This is an abstract class, and should not be instantiated by the user.
 
 This Perl module represents the base of the token hierarchy.
 
+=head1 INHERITANCE
+
+C<PPIx::QuoteLike::Token> is not descended from any other class.
+
+C<PPIx::QuoteLike::Token> is the parent of
+L<PPIx::QuoteLike::Token::Control|PPIx::QuoteLike::Token::Control>,
+L<PPIx::QuoteLike::Token::Interpolation|PPIx::QuoteLike::Token::Interpolation>,
+L<PPIx::QuoteLike::Token::String|PPIx::QuoteLike::Token::String>,
+L<PPIx::QuoteLike::Token::Structure|PPIx::QuoteLike::Token::Structure>,
+L<PPIx::QuoteLike::Token::Unknown|PPIx::QuoteLike::Token::Unknown> and
+L<PPIx::QuoteLike::Token::Whitespace|PPIx::QuoteLike::Token::Whitespace>.
+
 =head1 METHODS
 
 This class supports the following public methods:

@@ -749,6 +749,12 @@ reasonably like string literals. Its real reason for being is to find
 interpolated variables for L<Perl::Critic|Perl::Critic> policies and
 similar code.
 
+=head1 INHERITANCE
+
+C<PPIx::QuoteLike> is not descended from any other class.
+
+C<PPIx::QuoteLike> has no descendants.
+
 =head1 METHODS
 
 This class supports the following public methods:
@@ -1007,7 +1013,7 @@ another.
 Sometimes the introduction of new syntax changes the way a string is
 parsed. For example, the C<\F> (fold case) case control was introduced
 in Perl 5.15.8. But it did not represent a syntax error prior to that
-version of Perl, it was simply parsed as C<V>. So
+version of Perl, it was simply parsed as C<F>. So
 
  $ perl -le 'print "Foo\FBar"'
 
@@ -1029,7 +1035,7 @@ it out. I<Caveat user>.
 =head2 Non-Standard Syntax
 
 There are modules out there that alter the syntax of Perl. If the syntax
-of a regular expression is altered, this module has no way to understand
+of a quote-like string is altered, this module has no way to understand
 that it has been altered, much less to adapt to the alteration. The
 following modules are known to cause problems:
 
