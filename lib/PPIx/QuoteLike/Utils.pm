@@ -32,10 +32,31 @@ require PPIx::QuoteLike;
 	my ( $ppi ) = @_;
 
 	Scalar::Util::blessed( $ppi )
-	    and $ppi->isa( 'PPI::Element' )
-	    or croak 'Argument must be a PPI::Element';
+	    or croak 'Argument must be an object';
+
+	$ppi->isa( 'PPIx::QuoteLike' )
+	    and return $ppi->variables();
+	$ppi->isa( 'PPIx::QuoteLike::Token' )
+	    and return $ppi->variables();
 
 	my %var;
+
+	$ppi->isa( 'PPIx::Regexp::Element' )
+	    and do {
+		foreach my $code ( @{ $ppi->find(
+		    'PPIx::Regexp::Token::Code' ) || [] } ) {
+		    foreach my $name ( __variables( $code->ppi() ) ) {
+			$var{ $name } = 1;
+		    }
+		}
+		return keys %var;
+	    };
+
+
+	$ppi->isa( 'PPI::Element' )
+	    or croak 'Argument must be a PPI::Element, ',
+		'PPIx::Regexp::Element, PPIx::QuoteLike, or ',
+		'PPIx::QuoteLike::Token';
 
 	foreach my $sym ( _find( $ppi, 'PPI::Token::Symbol' ) ) {
 	    # The problem we're solving here is that PPI parses postfix

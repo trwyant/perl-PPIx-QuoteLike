@@ -11,6 +11,7 @@ use PPIx::QuoteLike::Utils qw{ __variables };
 use Test::More 0.88;	# Because of done_testing();
 
 sub check (@);
+sub check_class (@);
 sub check_token (@);
 
 check q<"foo$bar">, qw< $bar >;
@@ -20,6 +21,8 @@ check q<'foo$bar'>;
 check_token q<"foo$bar">, qw< $bar >;
 
 check_token q<'foo$bar'>;
+
+check_class q<"foo$bar">, qw< PPIx::QuoteLike $bar >;
 
 # Note -- the following was done using the trinary operator rather than
 # if/else because I hoped that with the former implementation, when I
@@ -39,6 +42,12 @@ check q<qr/ foo (?{ "$bar" }) />,
 check_token q<s/ foo ( $bar[0] ) / xyz( $1 ) /smxe;>,
     HAVE_PPIX_REGEXP ? qw{ $1 @bar } : ();
 
+if ( HAVE_PPIX_REGEXP ) {
+
+    check_class q<qr/ foo (?{ "$bar" }) />, qw< PPIx::Regexp $bar >;
+
+}
+
 done_testing;
 
 sub check (@) {
@@ -46,6 +55,16 @@ sub check (@) {
     my $doc = PPI::Document->new( \$expr );
     my @got = sort( __variables( $doc ) );
     @_ = ( \@got, [ sort @want ], "Variables in q<$expr>" );
+    goto &is_deeply;
+}
+
+sub check_class (@) {
+    my ( $expr, $class, @want ) = @_;
+    ( my $fn = "$class.pm" ) =~ s| :: |/|smxg;
+    require $fn;
+    my $obj = $class->new( $expr );
+    my @got = sort( __variables( $obj ) );
+    @_ = ( \@got, [ sort @want ], "Variables in $class q<$expr>" );
     goto &is_deeply;
 }
 
