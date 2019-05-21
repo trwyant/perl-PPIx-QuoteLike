@@ -34,6 +34,22 @@ require PPIx::QuoteLike;
 	Scalar::Util::blessed( $ppi )
 	    or croak 'Argument must be an object';
 
+	# TODO the following two lines are a crock, but there does not
+	# seem to be a good alternative. Bad alternatives:
+	# * Introduce PPIx::QuoteLike::Element. But it seems stupid to
+	#   introduce a class simply to mark these as members of the
+	#   PPIx::QuoteLike family.
+	#   If I go this way at all, PPIx::QuoteLike::Element should be
+	#   analogous to PPIx::Regexp::Element in that it carries at
+	#   least the navigational and Perl version methods.
+	# * Use DOES(). But that was not introduced until 5.10. So I
+	#   could:
+	#   - Depend on UNIVERSAL::DOES. This kindly steps aside if
+	#     UNIVERSAL::DOES() exists, but it seems stupid to introduce
+	#     a dependency that is only needed under really old Perls.
+	#   - Same as above, only make the dependence conditional on the
+	#     version of Perl. This may actually be the best
+	#     alternative, but it's still pretty crufty.
 	$ppi->isa( 'PPIx::QuoteLike' )
 	    and return $ppi->variables();
 	$ppi->isa( 'PPIx::QuoteLike::Token' )
