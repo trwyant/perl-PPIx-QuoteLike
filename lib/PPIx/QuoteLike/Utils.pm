@@ -16,7 +16,7 @@ use constant RIGHT_CURLY	=> q<}>;
 
 our @EXPORT_OK = qw{ __variables };
 
-our $VERSION = '0.006';
+our $VERSION = '0.006_01';
 
 require PPIx::QuoteLike;
 
