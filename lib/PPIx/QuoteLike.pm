@@ -163,6 +163,24 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 		    redo;
 		}
 
+		# Handle \N{...} separately because it can not contain
+		# an interpolation even inside of an
+		# otherwise-interpolating string. That is to say,
+		# "\N{$foo}" is simply invalid, and does not even try to
+		# interpolate $foo.  {
+		if ( $content =~ m/ \G ( \\ N [{] ( [^}]+ ) [}] ) /smxgc ) {
+		    my ( $seq, $name ) = ( $1, $2 );
+		    # TODO The Regexp is certainly too permissive. For
+		    # the moment all I am doing is disallowing
+		    # interpolation.
+		    push @children, $name =~ m/ [\$\@] /smx ?
+			$self->_unknown( $seq, "Unknown charname '$name'" ) :
+			PPIx::QuoteLike::Token::String->__new(
+			    content	=> $seq,
+			);
+		    redo;
+		}
+
 		if ( $content =~ m/ \G ( [\$\@] \#? \$* ) /smxgc ) {
 		    push @children, $self->_interpolation( "$1", $content );
 		    redo;
