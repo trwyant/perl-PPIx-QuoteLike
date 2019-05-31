@@ -12,7 +12,7 @@ use PPIx::QuoteLike;
 use PPIx::QuoteLike::Constant qw{ @CARP_NOT };
 use Scalar::Util ();
 
-our $VERSION = '0.006_01';
+our $VERSION = '0.007';
 
 use constant SCALAR_REF	=> ref \0;
 

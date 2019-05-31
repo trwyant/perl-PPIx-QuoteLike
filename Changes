@@ -1,4 +1,4 @@
-0.006_01	2019-05-23	T. R. Wyant
+0.007		2019-05-31	T. R. Wyant
     Prohibit interpolation inside \N{...}.
 
     Fix error message in eg/pqldump
