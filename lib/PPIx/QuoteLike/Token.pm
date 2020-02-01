@@ -88,6 +88,10 @@ sub sprevious_sibling {
     return;
 }
 
+sub variables {
+    return;
+}
+
 1;
 
 __END__
@@ -201,6 +205,16 @@ if there is none.
 
 This method returns the significant token before the invocant, or
 nothing if there is none.
+
+=head2 variables
+
+ say "Interpolates $_" for $elem->variables();
+
+This convenience method returns all interpolated variables. Each is
+returned only once, and they are returned in no particular order.
+
+B<NOTE> that because this class does not represent an interpolation,
+this method returns nothing.
 
 =head1 SEE ALSO
 

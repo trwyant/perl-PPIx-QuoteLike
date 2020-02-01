@@ -285,10 +285,12 @@ sub _variables {
     my ( $self, $elem ) = @_;
 
     $self->{variables}
-	and $elem->can( 'variables' )
 	or return;
 
-    return join ',', sort $elem->variables();
+    my @var = $elem->variables()
+	or return;
+
+    return join ',', sort @var;
 }
 
 1;
@@ -453,14 +455,6 @@ specified when the dumper was instantiated.
  $dumper->print();
 
 This method simply prints the result of L</string> to standard out.
-
-=cut
-
-sub print : method {	## no critic (ProhibitBuiltinHomonyms)
-    my ( $self ) = @_;
-    print $self->string();
-    return;
-}
 
 =head2 string
 

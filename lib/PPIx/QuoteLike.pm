@@ -396,8 +396,6 @@ sub variables {
 
     my %var;
     foreach my $kid ( $self->children() ) {
-	$kid->can( 'variables' )
-	    or next;
 	foreach my $sym ( $kid->variables() ) {
 	    $var{$sym} = 1;
 	}
