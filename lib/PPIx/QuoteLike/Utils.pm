@@ -14,13 +14,41 @@ use Scalar::Util ();
 use constant LEFT_CURLY		=> q<{>;
 use constant RIGHT_CURLY	=> q<}>;
 
-our @EXPORT_OK = qw{ __variables };
+our @EXPORT_OK = qw{
+    is_ppi_quotelike_element
+    __variables
+};
 
 our $VERSION = '0.008';
 
 require PPIx::QuoteLike;
 
 {
+
+    my @relevant_ppi_classes = qw{
+	PPI::Token::Quote
+	PPI::Token::QuoteLike::Backtick
+	PPI::Token::QuoteLike::Command
+	PPI::Token::QuoteLike::Readline
+	PPI::Token::HereDoc
+    };
+
+    sub is_ppi_quotelike_element {
+	my ( $elem ) = @_;
+
+	ref $elem
+	    or return;
+
+	Scalar::Util::blessed( $elem )
+	    or return;
+
+	foreach my $class ( @relevant_ppi_classes ) {
+	    $elem->isa( $class )
+		and return 1;
+	}
+
+	return;
+    }
 
     # TODO make these state varables once we can require Perl 5.10.
     my $postderef = { map { $_ => 1 } qw{ @* %* } };
@@ -173,13 +201,7 @@ require PPIx::QuoteLike;
 
 	# Yes, we might have nested string literals, like
 	# "... @{[ qq<$foo> ]} ..."
-	foreach my $class ( qw{
-		PPI::Token::Quote
-		PPI::Token::QuoteLike::Backtick
-		PPI::Token::QuoteLike::Command
-		PPI::Token::QuoteLike::Readline
-		PPI::Token::HereDoc
-	    } ) {
+	foreach my $class ( @relevant_ppi_classes ) {
 	    foreach my $elem ( _find( $ppi, $class ) ) {
 
 		my $ql = PPIx::QuoteLike->new( $elem )
@@ -348,6 +370,20 @@ did not seem to fit anywhere else.
 =head1 SUBROUTINES
 
 This module supports the following public subroutines:
+
+=head2 is_ppi_quotelike_element
+
+This subroutine returns true if its argument is a
+L<PPI::Element|PPI::Element> that this package is capable of dealing
+with. That is, one of the following:
+
+    PPI::Token::Quote
+    PPI::Token::QuoteLike::Backtick
+    PPI::Token::QuoteLike::Command
+    PPI::Token::QuoteLike::Readline
+    PPI::Token::HereDoc
+
+It returns false for unblessed references and for non-references.
 
 =head2 __variables
 
