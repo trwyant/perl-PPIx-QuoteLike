@@ -21,8 +21,6 @@ our @EXPORT_OK = qw{
 
 our $VERSION = '0.008';
 
-require PPIx::QuoteLike;
-
 {
 
     my @relevant_ppi_classes = qw{
@@ -58,6 +56,9 @@ require PPIx::QuoteLike;
 
     sub __variables {
 	my ( $ppi ) = @_;
+
+	# In case we need to manufacture any.
+	require PPIx::QuoteLike;
 
 	Scalar::Util::blessed( $ppi )
 	    or croak 'Argument must be an object';
