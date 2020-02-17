@@ -20,7 +20,7 @@ our @EXPORT_OK = qw{
     __variables
 };
 
-our $VERSION = '0.008';
+our $VERSION = '0.008_001';
 
 {
 

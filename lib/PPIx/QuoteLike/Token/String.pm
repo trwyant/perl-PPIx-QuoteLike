@@ -9,7 +9,7 @@ use base qw{ PPIx::QuoteLike::Token };
 
 use PPIx::QuoteLike::Constant qw{ @CARP_NOT };
 
-our $VERSION = '0.008';
+our $VERSION = '0.008_001';
 
 
 1;

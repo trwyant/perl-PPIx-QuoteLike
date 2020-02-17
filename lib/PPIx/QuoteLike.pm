@@ -30,7 +30,7 @@ use PPIx::QuoteLike::Utils qw{ __instance };
 use Scalar::Util ();
 use Text::Tabs ();
 
-our $VERSION = '0.008';
+our $VERSION = '0.008_001';
 
 use constant CODE_REF	=> ref sub {};
 

@@ -18,7 +18,7 @@ use PPIx::QuoteLike::Utils qw{ __variables };
 
 use base qw{ PPIx::QuoteLike::Token };
 
-our $VERSION = '0.008';
+our $VERSION = '0.008_001';
 
 # TODO filch code from PPIx::Regexp::Token::Code.
 sub ppi {
