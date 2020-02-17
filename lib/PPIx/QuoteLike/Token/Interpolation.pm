@@ -7,26 +7,52 @@ use warnings;
 
 use Carp;
 use PPI::Document;
-use PPIx::QuoteLike::Constant qw{ VARIABLE_RE @CARP_NOT };
+use PPIx::QuoteLike::Constant qw{
+    LOCATION_COLUMN
+    LOCATION_LOGICAL_LINE
+    LOCATION_LOGICAL_FILE
+    VARIABLE_RE
+    @CARP_NOT
+};
 use PPIx::QuoteLike::Utils qw{ __variables };
 
 use base qw{ PPIx::QuoteLike::Token };
 
 our $VERSION = '0.008';
 
+# TODO filch code from PPIx::Regexp::Token::Code.
 sub ppi {
     my ( $self ) = @_;
     unless ( $self->{ppi} ) {
+	my $content;
+	if ( my $location = $self->{location} ) {
+	    my $fn;
+	    if( defined( $fn = $location->[LOCATION_LOGICAL_FILE] ) ) {
+		$fn =~ s/ (?= [\\"] ) /\\/smxg;
+		$content = qq{#line $location->[LOCATION_LOGICAL_LINE] "$fn"\n};
+	    } else {
+		$content = qq{#line $location->[LOCATION_LOGICAL_LINE]\n};
+	    }
+	    $content .= ' ' x ( $location->[LOCATION_COLUMN] - 1 );
+	}
 ##	The following code is tempting, but I really, really want to
 ##	avoid enabling it, because I may hit uses of ${something} that
 ##	it does not cover.
-##	( my $content = $self->content() ) =~
+##	( $content = $self->content() ) =~
 ##	    s/ \A ( [\$\@] (?: \# \$? | \$* ) )
 ##	    \{ ( @{[ VARIABLE_RE ]} ) \} \z /$1$2/smxo;
-	my $content = $self->content();
+	$content .= $self->content();
 	$self->{ppi} = PPI::Document->new( \$content, readonly => 1 );
     }
     return $self->{ppi};
+}
+
+# For the moment this is package-private and subject to change or
+# retraction without notice. If there is need, it will be made public
+# by stripping the leading underscores and documenting it.
+sub __purge_ppi {
+    my ( $self ) = @_;
+    return delete $self->{ppi};
 }
 
 sub variables {

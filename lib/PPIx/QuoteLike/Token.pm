@@ -28,6 +28,18 @@ sub error {
     return $self->{error};
 }
 
+sub location {
+    my ( $self ) = @_;
+    if ( ! $self->{location} ) {
+	my $top = $self->top()
+	    or return undef;	## no critic (ProhibitExplicitReturnUndef)
+	$top->can( 'index_locations' )
+	    or return undef;	## no critic (ProhibitExplicitReturnUndef)
+	$top->index_locations();
+    }
+    return [ @{ $self->{location} } ];	# Shallow clone.
+}
+
 sub parent {
     my ( $self ) = @_;
     return $self->{parent};
@@ -88,6 +100,15 @@ sub sprevious_sibling {
     return;
 }
 
+sub top {
+    my ( $self ) = @_;
+    my $kid = $self;
+    while ( defined ( my $parent = $kid->parent() ) ) {
+	$kid = $parent;
+    }
+    return $kid;
+}
+
 sub variables {
     return;
 }
@@ -136,6 +157,16 @@ This method returns the text that makes up the token.
 
 This method returns the error text. This will be C<undef> unless the
 token actually represents an error.
+
+=head2 location
+
+This method returns a reference to an array describing the position of
+the element in the string, or C<undef> if
+L<index_locations()|PPIx::QuoteLike/index_locations> has not been called
+on the parent L<PPIx::QuoteLike|PPIx::QuoteLike>.
+
+The array is compatible with the corresponding
+L<PPI::Element|PPI::Element> method.
 
 =head2 parent
 
@@ -205,6 +236,10 @@ if there is none.
 
 This method returns the significant token before the invocant, or
 nothing if there is none.
+
+=head2 top
+
+This method returns the top of the hierarchy.
 
 =head2 variables
 

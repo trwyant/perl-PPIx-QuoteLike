@@ -63,6 +63,7 @@ sub requires {
 	'PPI::Document'	=> 1.117,
 	'PPI::Dumper'	=> 1.117,
 	'Scalar::Util'	=> 0,
+	'Text::Tabs'	=> 0,
 	'base'		=> 0,
 	'constant'	=> 0,
 	'strict'	=> 0,

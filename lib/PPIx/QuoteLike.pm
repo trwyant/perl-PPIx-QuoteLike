@@ -8,7 +8,17 @@ use warnings;
 use Carp;
 use Encode ();
 use List::Util ();
-use PPIx::QuoteLike::Constant qw{ MINIMUM_PERL VARIABLE_RE @CARP_NOT };
+use PPIx::QuoteLike::Constant qw{
+    ARRAY_REF
+    LOCATION_LINE
+    LOCATION_CHARACTER
+    LOCATION_COLUMN
+    LOCATION_LOGICAL_LINE
+    LOCATION_LOGICAL_FILE
+    MINIMUM_PERL
+    VARIABLE_RE
+    @CARP_NOT
+};
 use PPIx::QuoteLike::Token::Control;
 use PPIx::QuoteLike::Token::Delimiter;
 use PPIx::QuoteLike::Token::Interpolation;
@@ -16,7 +26,9 @@ use PPIx::QuoteLike::Token::String;
 use PPIx::QuoteLike::Token::Structure;
 use PPIx::QuoteLike::Token::Unknown;
 use PPIx::QuoteLike::Token::Whitespace;
+use PPIx::QuoteLike::Utils qw{ __instance };
 use Scalar::Util ();
+use Text::Tabs ();
 
 our $VERSION = '0.008';
 
@@ -51,6 +63,16 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 	};
 
 	bless $self, ref $class || $class;
+
+	if ( $arg{location} ) {
+	    ARRAY_REF eq ref $arg{location}
+		or croak q<Argument 'location' must be an array reference>;
+	    foreach my $inx ( 0 .. 3 ) {
+		$arg{location}[$inx] =~ m/ [^0-9] /smx
+		    and croak "Argument 'location' element $inx must be an unsigned integer";
+	    }
+	    $self->{location} = $arg{location};
+	}
 
 	defined( my $string = $self->_stringify_source( $source ) )
 	    or return;
@@ -319,9 +341,69 @@ sub handles {
     return $self->_stringify_source( $string, test => 1 );
 }
 
+sub _tab_width {
+    my ( $self ) = @_;
+    my $content = $self->content()
+	or return 1;
+    __instance( $content, 'PPI::Element' )
+	or return 1;
+    my $doc = $content->document()
+	or return 1;
+    return $doc->tab_width();
+}
+
+sub index_locations {
+    my ( $self ) = @_;
+    my $source = $self->source();
+    # [ $line, $rowchar, $col, $logical_line, $logical_file_name ]
+    my @location = $self->{location} ? @{ $self->{location} } :
+	__instance( $source, 'PPI::Element' ) ?
+	@{ $source->location() || [] } : ()
+	or return;
+    my $tab_width = $self->_tab_width();
+    $self->{_line_content} = '';
+    foreach my $token ( $self->elements() ) {
+	$token->{location} = [ @location ];
+	my $token_content = $token->content();
+	if ( my $newlines = $token_content =~ tr/\n/\n/ ) {
+	    $location[LOCATION_LINE] += $newlines;
+	    $location[LOCATION_LOGICAL_LINE] += $newlines;
+	    $token_content =~ s/ .* \n //smx;
+	    $location[LOCATION_CHARACTER] = $location[LOCATION_COLUMN] = 1;
+	    $self->{_line_content} = '';
+	}
+	$location[LOCATION_CHARACTER] += length $token_content;
+	$self->{_line_content} .= $token_content;
+	local $Text::Tabs::tabstop = $tab_width;
+	$location[LOCATION_COLUMN] = 1 + length Text::Tabs::expand(
+	    $self->{_line_content} );
+    }
+    delete $self->{_line_content};
+    return 1;
+}
+
+sub flush_locations {
+    my ( $self ) = @_;
+    foreach my $token ( $self->elements() ) {
+	delete $self->{location};
+	# TODO It would be nice if I could just call
+	# $token->ppi()->flush_locations(), but the presence of the
+	# location changes the text from which the PPI::Document is
+	# generated.
+	$token->isa( 'PPIx::QuoteLike::Token::Interpolation' )
+	    and $token->__purge_ppi();
+    }
+    return 1;
+}
+
 sub interpolates {
     my ( $self ) = @_;
     return $self->{interpolates};
+}
+
+sub location {
+    my ( $self ) = @_;
+    return $self->type()->location();
 }
 
 sub perl_version_introduced {
@@ -939,6 +1021,27 @@ This method returns a true value if the parsed string interpolates, and
 a false value if it does not. This does B<not> indicate whether any
 interpolation actually takes place, only whether the string is
 double-quotish or single-quotish.
+
+=head2 index_locations
+
+This method computes the locations of all elements of the string. It
+will fail if the location of the string as a whole can not be
+determined.
+
+=head2 flush_locations
+
+This subroutine removes the location data computed by
+L<index_locations()|/index_locations>.
+
+=head2 location
+
+This method returns a reference to an array describing the position of
+the string, or C<undef> if
+L<index_locations()|PPIx::QuoteLike/index_locations> has not been
+called.
+
+The array is compatible with the corresponding
+L<PPI::Element|PPI::Element> method.
 
 =head2 perl_version_introduced
 

@@ -16,6 +16,7 @@ use constant RIGHT_CURLY	=> q<}>;
 
 our @EXPORT_OK = qw{
     is_ppi_quotelike_element
+    __instance
     __variables
 };
 
@@ -251,6 +252,12 @@ sub _find {
     $elem->isa( $class )
 	and return $elem;
     return;
+}
+
+sub __instance {
+    my ( $object, $class ) = @_;
+    Scalar::Util::blessed( $object ) or return;
+    return $object->isa( $class );
 }
 
 # The problem this solves is that PPI can parse '{_}' as containing a
