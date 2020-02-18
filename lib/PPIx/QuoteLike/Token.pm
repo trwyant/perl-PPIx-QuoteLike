@@ -12,6 +12,7 @@ use PPIx::QuoteLike::Utils qw{
     line_number
     logical_filename
     logical_line_number
+    statement
     visual_column_number
 };
 
@@ -265,6 +266,25 @@ if there is none.
 
 This method returns the significant token before the invocant, or
 nothing if there is none.
+
+=head2 statement
+
+This method returns the L<PPI::Statement|PPI::Statement> that
+contains this token, or nothing if the statement can not be
+determined.
+
+In general this method will return something only under the following
+conditions:
+
+=over
+
+=item * The token is contained in a L<PPIx::QuoteLike|PPIx::QuoteLike> object;
+
+=item * That object was initialized from a L<PPI::Element|PPI::Element>;
+
+=item * The L<PPI::Element|PPI::Element> is contained in a statement.
+
+=back
 
 =head2 top
 

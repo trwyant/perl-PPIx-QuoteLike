@@ -29,6 +29,7 @@ our @EXPORT_OK = qw{
     line_number
     logical_filename
     logical_line_number
+    statement
     visual_column_number
     __instance
     __variables
@@ -321,6 +322,19 @@ sub logical_line_number {
     return ( $self->location() || [] )->[LOCATION_LOGICAL_LINE];
 }
 
+sub statement {
+    my ( $self ) = @_;
+    my $top = $self->top()
+	or return;
+    $top->can( 'source' )
+	or return;
+    my $source = $top->source()
+	or return;
+    $source->can( 'statement' )
+	or return;
+    return $source->statement();
+}
+
 sub visual_column_number {
     my ( $self ) = @_;
     return ( $self->location() || [] )->[LOCATION_COLUMN];
@@ -453,6 +467,25 @@ element, or C<undef> if that can not be determined.
 This subroutine/method returns the logical line number (taking C<#line>
 directives into account) of the first character in the element, or
 C<undef> if that can not be determined.
+
+=head2 statement
+
+This subroutine/method returns the L<PPI::Statement|PPI::Statement> that
+contains this element, or nothing if the statement can not be
+determined.
+
+In general this method will return something only under the following
+conditions:
+
+=over
+
+=item * The element is contained in a L<PPIx::Regexp|PPIx::Regexp> object;
+
+=item * That object was initialized from a L<PPI::Element|PPI::Element>;
+
+=item * The L<PPI::Element|PPI::Element> is contained in a statement.
+
+=back
 
 =head2 visual_column_number
 

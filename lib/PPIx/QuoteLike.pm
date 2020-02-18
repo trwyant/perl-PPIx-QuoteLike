@@ -31,6 +31,7 @@ use PPIx::QuoteLike::Utils qw{
     line_number
     logical_filename
     logical_line_number
+    statement
     visual_column_number
     __instance
 };
@@ -413,6 +414,10 @@ sub location {
     return $self->type()->location();
 }
 
+sub parent {
+    return;
+}
+
 sub perl_version_introduced {
     my ( $self ) = @_;
     return List::Util::max( grep { defined $_ } MINIMUM_PERL,
@@ -466,6 +471,11 @@ sub start {
     wantarray
 	and return @{ $self->{start} };
     return $self->{start}[ $inx || 0 ];
+}
+
+sub top {
+    my ( $self ) = @_;
+    return $self;
 }
 
 sub type {
@@ -1072,6 +1082,11 @@ This method returns the logical line number (taking C<#line> directives
 into account) of the first character in the element, or C<undef> if that
 can not be determined.
 
+=head2 parent
+
+This method returns nothing, since the invocant is only used at the top
+of the object hierarchy.
+
 =head2 perl_version_introduced
 
 This method returns the maximum value of C<perl_version_introduced>
@@ -1123,6 +1138,30 @@ containing the trailing new line character.
 If called in list context you get the whole array. If called in scalar
 context you get the element whose index is given in the argument, or
 element zero if no argument is specified.
+
+=head2 statement
+
+This method returns the L<PPI::Statement|PPI::Statement> that
+contains this string, or nothing if the statement can not be
+determined.
+
+In general this method will return something only under the following
+conditions:
+
+=over
+
+=item * The string is contained in a L<PPIx::QuoteLike|PPIx::QuoteLike> object;
+
+=item * That object was initialized from a L<PPI::Element|PPI::Element>;
+
+=item * The L<PPI::Element|PPI::Element> is contained in a statement.
+
+=back
+
+=head2 top
+
+This method returns the top of the hierarchy -- in this case, the
+invocant.
 
 =head2 type
 

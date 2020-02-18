@@ -28,6 +28,7 @@ t/basic.t
 t/dump.t
 t/locations.t
 t/parse.t
+t/unit-adhoc.t
 t/variables.t
 t/version.t
 xt/author/carp_not.t
