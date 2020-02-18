@@ -26,7 +26,14 @@ use PPIx::QuoteLike::Token::String;
 use PPIx::QuoteLike::Token::Structure;
 use PPIx::QuoteLike::Token::Unknown;
 use PPIx::QuoteLike::Token::Whitespace;
-use PPIx::QuoteLike::Utils qw{ __instance };
+use PPIx::QuoteLike::Utils qw{
+    column_number
+    line_number
+    logical_filename
+    logical_line_number
+    visual_column_number
+    __instance
+};
 use Scalar::Util ();
 use Text::Tabs ();
 
@@ -934,6 +941,11 @@ This method returns all child elements. Children do not include the
 L<type()|/type>, or the L<start()|/start> or L<finish()|/finish>
 delimiters.
 
+=head2 column_number
+
+This method returns the column number of the first character in the
+element, or C<undef> if that can not be determined.
+
 =head2 content
 
  say $str->content();
@@ -1033,6 +1045,11 @@ determined.
 This subroutine removes the location data computed by
 L<index_locations()|/index_locations>.
 
+=head2 line_number
+
+This method returns the line number of the first character in the
+element, or C<undef> if that can not be determined.
+
 =head2 location
 
 This method returns a reference to an array describing the position of
@@ -1042,6 +1059,18 @@ called.
 
 The array is compatible with the corresponding
 L<PPI::Element|PPI::Element> method.
+
+=head2 logical_filename
+
+This method returns the logical file name (taking C<#line> directives
+into account) of the file containing first character in the element, or
+C<undef> if that can not be determined.
+
+=head2 logical_line_number
+
+This method returns the logical line number (taking C<#line> directives
+into account) of the first character in the element, or C<undef> if that
+can not be determined.
 
 =head2 perl_version_introduced
 
@@ -1120,6 +1149,12 @@ This convenience method returns all interpolated variables. Each is
 returned only once, and they are returned in no particular order. If the
 object does not represent a string that interpolates, nothing is
 returned.
+
+=head2 visual_column_number
+
+This method returns the visual column number (taking tabs into account)
+of the first character in the element, or C<undef> if that can not be
+determined.
 
 =head1 RESTRICTIONS
 

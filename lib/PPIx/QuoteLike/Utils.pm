@@ -8,19 +8,38 @@ use warnings;
 use base qw{ Exporter };
 
 use Carp;
-use PPIx::QuoteLike::Constant qw{ HAVE_PPIX_REGEXP VARIABLE_RE @CARP_NOT };
+use PPIx::QuoteLike::Constant qw{
+    HAVE_PPIX_REGEXP
+    LOCATION_LINE
+    LOCATION_CHARACTER
+    LOCATION_COLUMN
+    LOCATION_LOGICAL_LINE
+    LOCATION_LOGICAL_FILE
+    VARIABLE_RE
+    @CARP_NOT
+};
 use Scalar::Util ();
 
 use constant LEFT_CURLY		=> q<{>;
 use constant RIGHT_CURLY	=> q<}>;
 
 our @EXPORT_OK = qw{
+    column_number
     is_ppi_quotelike_element
+    line_number
+    logical_filename
+    logical_line_number
+    visual_column_number
     __instance
     __variables
 };
 
 our $VERSION = '0.008_001';
+
+sub column_number {
+    my ( $self ) = @_;
+    return ( $self->location() || [] )->[LOCATION_CHARACTER];
+}
 
 {
 
@@ -287,6 +306,26 @@ sub _is_bareword_subscript {
     return 1;
 }
 
+sub line_number {
+    my ( $self ) = @_;
+    return ( $self->location() || [] )->[LOCATION_LINE];
+}
+
+sub logical_filename {
+    my ( $self ) = @_;
+    return ( $self->location() || [] )->[LOCATION_LOGICAL_FILE];
+}
+
+sub logical_line_number {
+    my ( $self ) = @_;
+    return ( $self->location() || [] )->[LOCATION_LOGICAL_LINE];
+}
+
+sub visual_column_number {
+    my ( $self ) = @_;
+    return ( $self->location() || [] )->[LOCATION_COLUMN];
+}
+
 # This handles two known cases where PPI misparses bracketed variable
 # names.
 # * $${foo} is parsed as '$$' when it is really a dereference of $foo.
@@ -379,6 +418,11 @@ did not seem to fit anywhere else.
 
 This module supports the following public subroutines:
 
+=head2 column_number
+
+This subroutine/method returns the column number of the first character
+in the element, or C<undef> if that can not be determined.
+
 =head2 is_ppi_quotelike_element
 
 This subroutine returns true if its argument is a
@@ -392,6 +436,29 @@ with. That is, one of the following:
     PPI::Token::HereDoc
 
 It returns false for unblessed references and for non-references.
+
+=head2 line_number
+
+This subroutine/method returns the line number of the first character in
+the element, or C<undef> if that can not be determined.
+
+=head2 logical_filename
+
+This subroutine/method returns the logical file name (taking C<#line>
+directives into account) of the file containing first character in the
+element, or C<undef> if that can not be determined.
+
+=head2 logical_line_number
+
+This subroutine/method returns the logical line number (taking C<#line>
+directives into account) of the first character in the element, or
+C<undef> if that can not be determined.
+
+=head2 visual_column_number
+
+This subroutine/method returns the visual column number (taking tabs
+into account) of the first character in the element, or C<undef> if that
+can not be determined.
 
 =head2 __variables
 

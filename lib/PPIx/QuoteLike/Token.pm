@@ -7,6 +7,13 @@ use warnings;
 
 use Carp;
 use PPIx::QuoteLike::Constant qw{ MINIMUM_PERL @CARP_NOT };
+use PPIx::QuoteLike::Utils qw{
+    column_number
+    line_number
+    logical_filename
+    logical_line_number
+    visual_column_number
+};
 
 our $VERSION = '0.008_001';
 
@@ -145,6 +152,11 @@ L<PPIx::QuoteLike::Token::Whitespace|PPIx::QuoteLike::Token::Whitespace>.
 
 This class supports the following public methods:
 
+=head2 column_number
+
+This method returns the column number of the first character in the
+element, or C<undef> if that can not be determined.
+
 =head2 content
 
  say $token->content();
@@ -158,6 +170,11 @@ This method returns the text that makes up the token.
 This method returns the error text. This will be C<undef> unless the
 token actually represents an error.
 
+=head2 line_number
+
+This method returns the line number of the first character in the
+element, or C<undef> if that can not be determined.
+
 =head2 location
 
 This method returns a reference to an array describing the position of
@@ -167,6 +184,18 @@ on the parent L<PPIx::QuoteLike|PPIx::QuoteLike>.
 
 The array is compatible with the corresponding
 L<PPI::Element|PPI::Element> method.
+
+=head2 logical_filename
+
+This method returns the logical file name (taking C<#line> directives
+into account) of the file containing first character in the element, or
+C<undef> if that can not be determined.
+
+=head2 logical_line_number
+
+This method returns the logical line number (taking C<#line> directives
+into account) of the first character in the element, or C<undef> if that
+can not be determined.
 
 =head2 parent
 
@@ -250,6 +279,12 @@ returned only once, and they are returned in no particular order.
 
 B<NOTE> that because this class does not represent an interpolation,
 this method returns nothing.
+
+=head2 visual_column_number
+
+This method returns the visual column number (taking tabs into account)
+of the first character in the element, or C<undef> if that can not be
+determined.
 
 =head1 SEE ALSO
 
