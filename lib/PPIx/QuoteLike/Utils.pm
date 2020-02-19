@@ -35,7 +35,7 @@ our @EXPORT_OK = qw{
     __variables
 };
 
-our $VERSION = '0.008_001';
+our $VERSION = '0.008_002';
 
 sub column_number {
     my ( $self ) = @_;
