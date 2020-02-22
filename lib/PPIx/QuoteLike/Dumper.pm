@@ -10,6 +10,7 @@ use PPI::Document;
 use PPI::Dumper;
 use PPIx::QuoteLike;
 use PPIx::QuoteLike::Constant qw{ @CARP_NOT };
+use PPIx::QuoteLike::Utils qw{ __instance };
 use Scalar::Util ();
 
 our $VERSION = '0.008_002';
@@ -21,6 +22,7 @@ use constant SCALAR_REF	=> ref \0;
 	encoding	=> undef,
 	file		=> undef,
 	indent		=> 2,
+	locations	=> 0,
 	margin		=> 0,
 	perl_version	=> 0,
 	ppi		=> 0,
@@ -45,6 +47,10 @@ use constant SCALAR_REF	=> ref \0;
 
 	$self->{object} = _isa( $source, 'PPIx::QuoteLike' ) ? $source :
 	    PPIx::QuoteLike->new( $source,
+		__instance( $source, 'PPI::Element' ) ? () : (
+		    location	=> [ 1, 1, 1, 1, -f $source ? $source :
+			undef ],
+		),
 		map { $_ => $arg{$_} } qw{ encoding postderef },
 	    )
 	    or return;
@@ -106,6 +112,14 @@ sub list {
 	$self->{significant}
 	    and not $elem->significant()
 	    and next;
+	my $locn = $self->{locations} ?
+	    __instance( $elem, 'PPIx::QuoteLike::Token' ) ?
+		sprintf '[ % 4d, % 3d, % 3d ] ',
+		    $elem->logical_line_number(),
+		    $elem->column_number(),
+		    $elem->visual_column_number() :
+		' ' x 19 :
+	    '';
 	my @line = (
 	    ref $elem,
 	    _quote( $elem->content() ),
@@ -115,7 +129,20 @@ sub list {
 	my @ppi;
 	@ppi = $self->_ppi( $elem, $split )
 	    and push @line, shift @ppi;
-	push @rslt, map { "$indent$_" } join( "\t", @line ), @ppi;
+	foreach ( @ppi ) {
+	    if ( $self->{locations} ) {
+		s/ ( [0-9]+ \s+ \] ) /$1  /smxg
+		    or substr $_, 0, 0, '  ';
+	    } else {
+		substr $_, 0, 0, '  ';
+	    }
+	}
+	my $leader = "$locn$indent";
+	foreach ( join( "\t", @line ), @ppi ) {
+	    push @rslt, "$leader$_";
+	    # $locn = $self->{locations} ? ' ' x 19 : '';
+	    $leader = '';
+	}
     }
     return @rslt;
 }
@@ -145,7 +172,6 @@ sub string {
 	    or return;
 	ref $path
 	    or $arg{file} = $path;
-	$doc->index_locations();
 	return map { $class->new( $_, %arg ) }
 	    @{ $doc->find( 'PPI::Token' ) || [] };
     }
@@ -202,12 +228,25 @@ sub _ppi {
 	and $elem->can( 'ppi' )
 	or return;
 
+    # PPI::Dumper reports line_number(), but I want
+    # logical_line_number(). There is no configuration for this, but the
+    # interface is public, so I mung it to do what I want.
+    my $locn = PPI::Element->can( 'location' );
+    local *PPI::Element::location = sub {
+	my $loc = $locn->( @_ );
+	$loc->[0] = $loc->[3];
+	return $loc;
+    };
+
     my $dumper = PPI::Dumper->new( $elem->ppi(),
-	map { $_ => $self->{$_} } qw{ indent },
+	map { $_ => $self->{$_} } qw{ indent locations },
     );
 
     my $str = $dumper->string();
     chomp $str;
+
+    # Remove any indentation from the PPI::Document
+    $str =~ s/ \A \s+ //smx;
 
     $split
 	and return split qr{ \n }smx, $str;

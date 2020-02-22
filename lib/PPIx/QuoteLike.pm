@@ -62,16 +62,6 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 	defined $arg{postderef}
 	    or $arg{postderef} = $PPIx::QuoteLike::DEFAULT_POSTDEREF;
 
-	my $self = {
-	    children	=> \@children,
-	    encoding	=> $arg{encoding},
-	    failures	=> 0,
-	    postderef	=> ( $arg{postderef} ? 1 : 0 ),
-	    source	=> $source,
-	};
-
-	bless $self, ref $class || $class;
-
 	if ( $arg{location} ) {
 	    ARRAY_REF eq ref $arg{location}
 		or croak q<Argument 'location' must be an array reference>;
@@ -79,8 +69,24 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 		$arg{location}[$inx] =~ m/ [^0-9] /smx
 		    and croak "Argument 'location' element $inx must be an unsigned integer";
 	    }
-	    $self->{location} = $arg{location};
 	}
+
+	if ( ! defined $arg{index_locations} ) {
+	    $arg{index_locations} = !! $arg{location} ||
+		__instance( $source, 'PPI::Element' );
+	}
+
+	my $self = {
+	    index_locations	=> $arg{index_locations},
+	    children	=> \@children,
+	    encoding	=> $arg{encoding},
+	    failures	=> 0,
+	    location	=> $arg{location},
+	    postderef	=> ( $arg{postderef} ? 1 : 0 ),
+	    source	=> $source,
+	};
+
+	bless $self, ref $class || $class;
 
 	defined( my $string = $self->_stringify_source( $source ) )
 	    or return;
@@ -126,20 +132,14 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 		$end_delim = '';
 	    }
 	    $self->{start} = [
-		PPIx::QuoteLike::Token::Delimiter->__new(
-		    content	=> $start_delim,
-		),
-		PPIx::QuoteLike::Token::Whitespace->__new(
-		    content	=> "\n",
-		),
+		$self->_make_token( Delimiter => content => $start_delim ),
+		$self->_make_token( Whitespace => content => "\n" ),
 	    ];
+
+	    # Don't instantiate yet -- we'll do them at the end.
 	    $self->{finish} = [
-		PPIx::QuoteLike::Token::Delimiter->__new(
-		    content	=> $end_delim,
-		),
-		PPIx::QuoteLike::Token::Whitespace->__new(
-		    content	=> "\n",
-		),
+		[ Delimiter => content => $end_delim ],
+		[ Whitespace => content => "\n" ],
 	    ];
 
 	# ``, '', "", <>
@@ -167,17 +167,13 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 	$self->{interpolates} = $self->{interpolates} ? 1 : 0;
 
 	$self->{type} = [
-	    PPIx::QuoteLike::Token::Structure->__new(
-		content	=> $type,
-	    ),
-	    length $gap ? PPIx::QuoteLike::Token::Whitespace->__new(
-		content	=> $gap,
-	    ) : ()
+	    $self->_make_token( Structure => content => $type ),
+	    length $gap ?
+		$self->_make_token( Whitespace => content => $gap ) :
+		(),
 	];
 	$self->{start} ||= [
-	    PPIx::QuoteLike::Token::Delimiter->__new(
-		content	=> $start_delim,
-	    ),
+	    $self->_make_token( Delimiter => content => $start_delim ),
 	];
 
 	$arg{trace}
@@ -187,8 +183,8 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 	    {	# Single-iteration loop
 
 		if ( $content =~ m/ \G ( \\ [ULulQEF] ) /smxgc ) {
-		    push @children, PPIx::QuoteLike::Token::Control->__new(
-			content	=> "$1",		# Remove magic
+		    push @children, $self->_make_token(
+			Control => content	=> "$1",	# Remove magic
 		    );
 		    redo;
 		}
@@ -205,9 +201,7 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 		    # interpolation.
 		    push @children, $name =~ m/ [\$\@] /smx ?
 			$self->_unknown( $seq, "Unknown charname '$name'" ) :
-			PPIx::QuoteLike::Token::String->__new(
-			    content	=> $seq,
-			);
+			$self->_make_token( String => content => $seq );
 		    redo;
 		}
 
@@ -223,8 +217,8 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 			    'PPIx::QuoteLike::Token::String' )
 			and $content = ( pop @children )->content() .
 		    $content;
-		    push @children, PPIx::QuoteLike::Token::String->__new(
-			content	=> $content,
+		    push @children, $self->_make_token(
+			String => content => $content,
 		    );
 		    redo;
 		}
@@ -233,16 +227,15 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 	    # We might have consecutive strings if _interpolation()
 	    # generated a string rather than an interpolation. Merge
 	    # these.
+	    # FIXME if I'm to tokenize strictly left-to-right I need to
+	    # do this on the fly.
 	    my @rslt;
 	    foreach my $elem ( @children ) {
 		if ( $elem->isa( 'PPIx::QuoteLike::Token::String' ) &&
 		    @rslt &&
 		    $rslt[-1]->isa( 'PPIx::QuoteLike::Token::String' )
 		) {
-		    push @rslt, PPIx::QuoteLike::Token::String->__new(
-			content	=> join( '', map { $_->content() } pop
-			    @rslt, $elem ),
-		    );
+		    $rslt[-1]{content} .= $elem->{content};
 		} else {
 		    push @rslt, $elem;
 		}
@@ -252,17 +245,22 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 	} else {
 
 	    length $content
-		and push @children, PPIx::QuoteLike::Token::String->__new(
-		    content	=> $content,
+		and push @children, $self->_make_token(
+		    String => content => $content,
 		);
 
 	}
 
-	$self->{finish} ||= [
-	    PPIx::QuoteLike::Token::Delimiter->__new(
-		content	=> $end_delim,
-	    ),
-	];
+	if ( $self->{finish} ) {
+	    # If we already have something here it is data, not objects.
+	    foreach ( @{ $self->{finish} } ) {
+		$_ = $self->_make_token( @{ $_ } );
+	    }
+	} else {
+	    $self->{finish} = [
+		$self->_make_token( Delimiter => content => $end_delim ),
+	    ];
+	}
 
 	ref $_[1]
 	    and pos( $_[1] ) = pos $string;
@@ -349,61 +347,6 @@ sub handles {
     return $self->_stringify_source( $string, test => 1 );
 }
 
-sub _tab_width {
-    my ( $self ) = @_;
-    my $content = $self->content()
-	or return 1;
-    __instance( $content, 'PPI::Element' )
-	or return 1;
-    my $doc = $content->document()
-	or return 1;
-    return $doc->tab_width();
-}
-
-sub index_locations {
-    my ( $self ) = @_;
-    my $source = $self->source();
-    # [ $line, $rowchar, $col, $logical_line, $logical_file_name ]
-    my @location = $self->{location} ? @{ $self->{location} } :
-	__instance( $source, 'PPI::Element' ) ?
-	@{ $source->location() || [] } : ()
-	or return;
-    my $tab_width = $self->_tab_width();
-    $self->{_line_content} = '';
-    foreach my $token ( $self->elements() ) {
-	$token->{location} = [ @location ];
-	my $token_content = $token->content();
-	if ( my $newlines = $token_content =~ tr/\n/\n/ ) {
-	    $location[LOCATION_LINE] += $newlines;
-	    $location[LOCATION_LOGICAL_LINE] += $newlines;
-	    $token_content =~ s/ .* \n //smx;
-	    $location[LOCATION_CHARACTER] = $location[LOCATION_COLUMN] = 1;
-	    $self->{_line_content} = '';
-	}
-	$location[LOCATION_CHARACTER] += length $token_content;
-	$self->{_line_content} .= $token_content;
-	local $Text::Tabs::tabstop = $tab_width;
-	$location[LOCATION_COLUMN] = 1 + length Text::Tabs::expand(
-	    $self->{_line_content} );
-    }
-    delete $self->{_line_content};
-    return 1;
-}
-
-sub flush_locations {
-    my ( $self ) = @_;
-    foreach my $token ( $self->elements() ) {
-	delete $self->{location};
-	# TODO It would be nice if I could just call
-	# $token->ppi()->flush_locations(), but the presence of the
-	# location changes the text from which the PPI::Document is
-	# generated.
-	$token->isa( 'PPIx::QuoteLike::Token::Interpolation' )
-	    and $token->__purge_ppi();
-    }
-    return 1;
-}
-
 sub interpolates {
     my ( $self ) = @_;
     return $self->{interpolates};
@@ -412,6 +355,55 @@ sub interpolates {
 sub location {
     my ( $self ) = @_;
     return $self->type()->location();
+}
+
+sub _make_token {
+    my ( $self, $class, %arg ) = @_;
+    $class =~ m/ \A PPIx::QuoteLike::Token:: /smx
+	or substr $class, 0, 0, 'PPIx::QuoteLike::Token::';
+    my $token = $class->__new( %arg );
+    $self->{index_locations}
+	and $self->_update_location( $token );
+    return $token;
+}
+
+sub _update_location {
+    my ( $self, $token ) = @_;
+    $token->{location}	# Idempotent
+	and return;
+    my $loc = $self->{_location} ||= do {
+	my %loc = (
+	    line_content	=> '',
+	    location		=> $self->{location},
+	);
+	if ( __instance( $self->{source}, 'PPI::Element' ) ) {
+	    $loc{location} ||= $self->{source}->location();
+	    if ( my $doc = $self->{source}->document() ) {
+		$loc{tab_width} = $doc->tab_width();
+	    }
+	}
+	$loc{tab_width} ||= 1;
+	\%loc;
+    };
+    $loc->{location}
+	or return;
+    $token->{location} = [ @{ $loc->{location} } ];
+    if ( defined( my $content = $token->content() ) ) {
+	if ( my $newlines = $content =~ tr/\n/\n/ ) {
+	    $loc->{location}[LOCATION_LINE] += $newlines;
+	    $loc->{location}[LOCATION_LOGICAL_LINE] += $newlines;
+	    $content =~ s/ .* \n //smx;
+	    $loc->{location}[LOCATION_CHARACTER] =
+		$loc->{location}[LOCATION_COLUMN] = 1;
+	    $loc->{line_content} = '';
+	}
+	$loc->{location}[LOCATION_CHARACTER] += length $content;
+	$loc->{line_content} .= $content;
+	local $Text::Tabs::tabstop = $loc->{tab_width};
+	$loc->{location}[LOCATION_COLUMN] = 1 + length Text::Tabs::expand(
+	    $loc->{line_content} );
+    }
+    return;
 }
 
 sub parent {
@@ -600,35 +592,34 @@ sub __decode {
 
     my %special = (
 	'$$'	=> sub {	# Process ID.
-	    my ( $content ) = @_;
-	    return PPIx::QuoteLike::Token::Interpolation->__new(
-		content	=> $content,
-	    );
+	    my ( $self, $sigil ) = @_;
+	    return $self->_make_token( Interpolation => content	=> $sigil );
 	},
 	'$'	=> sub {	# Called if we find (e.g.) '$@'
-	    my ( $content ) = @_;
-	    $_[1] =~ m/ \G ( [\@] ) /smxgc
+	    my ( $self, $sigil ) = @_;
+	    $_[2] =~ m/ \G ( [\@] ) /smxgc
 		or return;
-	    return PPIx::QuoteLike::Token::Interpolation->__new(
-		content	=> "$content$1",
+	    return $self->_make_token(
+		Interpolation => content	=> "$sigil$1",
 	    );
 	},
 	'@'	=> sub {	# Called if we find '@@'.
-	    my ( $content ) = @_;
-	    return PPIx::QuoteLike::Token::String->__new(
-		content	=> $content,
-	    );
+	    my ( $self, $sigil ) = @_;
+	    return $self->_make_token( String => content => $sigil );
 	},
     );
 
     sub _interpolation {	## no critic (RequireArgUnpacking)
 	my ( $self, $sigil ) = @_;
+	# Argument $_[2] is $content, but we can't unpack it because we
+	# need the caller to see any changes to pos().
 
 	if ( $_[2] =~ m/ \G (?= \{ ) /smxgc ) {
+	    # variable name enclosed in {}
 	    my $delim_re = _match_enclosed( qw< { > );
 	    $_[2] =~ m/ \G ( $delim_re ) /smxgc
-		and return PPIx::QuoteLike::Token::Interpolation->__new(
-		    content	=> "$sigil$1",
+		and return $self->_make_token(
+		    Interpolation => content => "$sigil$1",
 		);
 	    $_[2] =~ m/ \G ( .* ) /smxgc
 		and return $self->_unknown( "$sigil$1", MISMATCHED_DELIM );
@@ -637,11 +628,9 @@ sub __decode {
 
 	if ( $_[2] =~ m< \G ( @{[ VARIABLE_RE ]} ) >smxgco
 	) {
+	    # variable name not enclosed in {}
 	    my $interp = "$sigil$1";
-	    my $deref = $self->postderef() ?
-		qr{ -> \@ | (?: -> )? }smx :
-		qr{ (?: -> )? }smx;
-	    while ( $_[2] =~ m/ \G  ( $deref ) (?= ( [[{] ) ) /smxgc ) { # }]
+	    while ( $_[2] =~ m/ \G  ( (?: -> )? ) (?= ( [[{] ) ) /smxgc ) { # }]
 		my $lead_in = $1;
 		my $delim_re = _match_enclosed( $2 );
 		if ( $_[2] =~ m/ \G ( $delim_re ) /smxgc ) {
@@ -649,27 +638,25 @@ sub __decode {
 		} else {
 		    $_[2] =~ m/ ( .* ) /smxgc;
 		    return (
-			PPIx::QuoteLike::Token::Interpolation->__new(
-			    content	=> $interp,
+			$self->_make_token(
+			    Interpolation => content => $interp,
 			),
 			$self->_unknown( "$1", MISMATCHED_DELIM ),
 		    );
 		}
 	    }
 
-	    # Postfix dereferencing
-	    $self->postderef()
-		and $_[2] =~ m/ \G ( -> (?: \$ \# | [\$\@] ) [*] ) /smxgc
-		and $interp .= $1;
+	    if ( $self->postderef()
+		    and defined( my $deref = _match_postderef( $_[2] ) ) ) {
+		$interp .= $deref;
+	    }
 
-	    return PPIx::QuoteLike::Token::Interpolation->__new(
-		content	=> $interp,
-	    );
+	    return $self->_make_token( Interpolation => content	=> $interp );
 	}
 
 	my $code;
 	$code = $special{$sigil}
-	    and my $elem = $code->( $sigil, $_[2] )
+	    and my $elem = $code->( $self, $sigil, $_[2] )
 	    or return $self->_unknown( $sigil, 'Sigil without interpolation' );
 
 	return $elem;
@@ -772,6 +759,37 @@ sub _link_elems {
     }
 }
 
+{
+    my %allow_subscr	= map { $_ => 1 } qw{ % @ };
+
+    # Match a postfix deref at the current position in the argument. If
+    # a match occurs it is returned, and the current position is
+    # updated. If not, nothing is returned, and the current position in
+    # the argument remains unchanged.
+    # This would all be much easier if I could count on Perl 5.10
+    sub _match_postderef {	## no critic (RequireArgUnpacking)
+	my $pos = pos $_[0];
+	$_[0] =~ m/ \G ( -> ) ( \$ \# | [\$\@%&*] ) /smxgc
+	    or return;
+	my $match = "$1$2";
+	my $sigil = $2;
+	$_[0] =~ m/ \G ( [*] ) /smxgc
+	    and return "$match$1";
+
+	if (
+	    $allow_subscr{$sigil} &&
+	    $_[0] =~ m/ \G (?= ( [[{] ) ) /smxgc	# }]
+	) {
+	    my $re = _match_enclosed( "$1" );
+	    $_[0] =~ m/ \G $re /smxgc
+		and return "$match$1";
+	}
+
+	pos $_[0] = $pos;
+	return;
+    }
+}
+
 sub _stringify_source {
     my ( $self, $string, %opt ) = @_;
 
@@ -826,7 +844,7 @@ sub _stringify_source {
 sub _unknown {
     my ( $self, $content, $error ) = @_;
     $self->{failures}++;
-    return PPIx::QuoteLike::Token::Unknown->__new(
+    return $self->_make_token( Unknown =>
 	content	=> $content,
 	error	=> $error,
     );
@@ -911,6 +929,20 @@ processing.
 If the C<$source> is a C<PPI::Element>, this encoding is used only if
 the document that contains the element has neither a byte order mark nor
 C<'use utf8'>.
+
+=item index_locations
+
+This Boolean argument determines whether the locations of the tokens
+should be computed. It defaults to true if the C<$source> argument is a
+L<PPI::Element|PPI::Element> or if the C<location> argument was
+provided, and false otherwise.
+
+=item location
+
+This argument is a reference to an array compatible with that returned
+by the L<PPI::Element|PPI::Element> location() method. It defaults to
+the location of the C<$source> argument if that was a
+L<PPI::Element|PPI::Element>, otherwise no locations will be available.
 
 =item postderef
 
@@ -1044,17 +1076,6 @@ a false value if it does not. This does B<not> indicate whether any
 interpolation actually takes place, only whether the string is
 double-quotish or single-quotish.
 
-=head2 index_locations
-
-This method computes the locations of all elements of the string. It
-will fail if the location of the string as a whole can not be
-determined.
-
-=head2 flush_locations
-
-This subroutine removes the location data computed by
-L<index_locations()|/index_locations>.
-
 =head2 line_number
 
 This method returns the line number of the first character in the
@@ -1063,9 +1084,7 @@ element, or C<undef> if that can not be determined.
 =head2 location
 
 This method returns a reference to an array describing the position of
-the string, or C<undef> if
-L<index_locations()|PPIx::QuoteLike/index_locations> has not been
-called.
+the string, or C<undef> if the location is unavailable.
 
 The array is compatible with the corresponding
 L<PPI::Element|PPI::Element> method.

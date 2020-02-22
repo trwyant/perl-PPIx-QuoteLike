@@ -20,7 +20,6 @@ EOD
     cmp_ok @{ $qd }, '==', 1,
 	'Found exactly one PPI::Token:Quote::Double';
     my $pql = PPIx::QuoteLike->new( $qd->[0] );
-    $pql->index_locations();	# For benefit of explain
     my @token = $pql->elements();
     cmp_ok scalar @token, '==', 6, 'Found 6 tokens in string';
     is_deeply $token[0]->location(), [ 2, 1, 1, 42, 'the_answer' ],
@@ -59,18 +58,14 @@ EOD
     note q<PPI document corresponding to '${bar}'>;
     my $ppi2 = $token[3]->ppi();
     @token = $ppi2->tokens();
-    cmp_ok scalar @token, '==', 6, 'Interpolation PPI has 6 tokens';
-    is_deeply $token[0]->location(), [ 1, 1, 1, 1, undef ],
-	q<Token 0 (qq<#line 42 "the_answer"\n>) location>;
-    is_deeply $token[1]->location(), [ 2, 1, 1, 42, 'the_answer' ],
-	q<Token 1 ('    ') location>;
-    is_deeply $token[2]->location(), [ 2, 5, 5, 42, 'the_answer' ],
-	q<Token 2 ('$') location>;
-    is_deeply $token[3]->location(), [ 2, 6, 6, 42, 'the_answer' ],
-	q<Token 3 ('{') location>;
-    is_deeply $token[4]->location(), [ 2, 7, 7, 42, 'the_answer' ],
-	q<Token 4 ('bar') location>;
-    is_deeply $token[5]->location(), [ 2, 10, 10, 42, 'the_answer' ],
+    cmp_ok scalar @token, '==', 4, 'Interpolation PPI has 4 tokens';
+    is_deeply $token[0]->location(), [ 2, 5, 5, 42, 'the_answer' ],
+	q<Token 0 ('$') location>;
+    is_deeply $token[1]->location(), [ 2, 6, 6, 42, 'the_answer' ],
+	q<Token 1 ('{') location>;
+    is_deeply $token[2]->location(), [ 2, 7, 7, 42, 'the_answer' ],
+	q<Token 2 ('bar') location>;
+    is_deeply $token[3]->location(), [ 2, 10, 10, 42, 'the_answer' ],
 	q<Token 5 ('}') location>;
 }
 

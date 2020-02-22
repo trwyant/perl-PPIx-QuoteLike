@@ -20,12 +20,12 @@ use base qw{ PPIx::QuoteLike::Token };
 
 our $VERSION = '0.008_002';
 
-# TODO filch code from PPIx::Regexp::Token::Code.
 sub ppi {
     my ( $self ) = @_;
     unless ( $self->{ppi} ) {
 	my $content;
-	if ( my $location = $self->{location} ) {
+	my $location = $self->{location};
+	if ( $location ) {
 	    my $fn;
 	    if( defined( $fn = $location->[LOCATION_LOGICAL_FILE] ) ) {
 		$fn =~ s/ (?= [\\"] ) /\\/smxg;
@@ -35,6 +35,7 @@ sub ppi {
 	    }
 	    $content .= ' ' x ( $location->[LOCATION_COLUMN] - 1 );
 	}
+
 ##	The following code is tempting, but I really, really want to
 ##	avoid enabling it, because I may hit uses of ${something} that
 ##	it does not cover.
@@ -42,7 +43,32 @@ sub ppi {
 ##	    s/ \A ( [\$\@] (?: \# \$? | \$* ) )
 ##	    \{ ( @{[ VARIABLE_RE ]} ) \} \z /$1$2/smxo;
 	$content .= $self->content();
-	$self->{ppi} = PPI::Document->new( \$content, readonly => 1 );
+
+	$self->{ppi} = PPI::Document->new( \$content );
+
+	if ( $location ) {
+	    # Generate locations now.
+	    $self->{ppi}->location();
+	    # Remove the stuff we originally injected. NOTE that we can
+	    # only get away with doing this if the removal does not
+	    # invalidate the locations of the other tokens that we just
+	    # generated.
+	    my $elem;
+	    # Remove the '#line' directive if we find it
+	    $elem = $self->{ppi}->child( 0 )
+		and $elem->isa( 'PPI::Token::Comment' )
+		and $elem->content() =~ m/ \A \#line\b /smx
+		and $elem->remove();
+	    # Remove the white space if we find it, and if it in fact
+	    # represents only the white space we injected to get the
+	    # column numbers right.
+	    my $wid = $location->[LOCATION_COLUMN] - 1;
+	    $wid
+		and $elem = $self->{ppi}->child( 0 )
+		and $elem->isa( 'PPI::Token::Whitespace' )
+		and $wid == length $elem->content()
+		and $elem->remove();
+	}
     }
     return $self->{ppi};
 }

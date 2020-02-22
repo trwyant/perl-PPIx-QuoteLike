@@ -15,7 +15,7 @@ my %opt;
 
 GetOptions( \%opt,
     qw{
-	encoding=s indent=i margin=i
+	encoding=s indent=i locations! margin=i
 	perl_version|perl-version! ppi! significant!
 	tokens! variables!
     },
@@ -30,7 +30,7 @@ defined $opt{encoding}
     and binmode STDOUT, ":encoding($opt{encoding})";
 
 my @dumper_arg = map { $_ => $opt{$_} } qw{
-    encoding indent margin perl_version ppi
+    encoding indent locations margin perl_version ppi
     significant tokens variables
 };
 
@@ -76,6 +76,11 @@ This option controls the number of spaces each level of structure is
 indented.
 
 The default is C<-indent 2>.
+
+=head2 -locations
+
+If this Boolean option is true the locations of the tokens will be
+dumped.
 
 =head2 -margin
 
