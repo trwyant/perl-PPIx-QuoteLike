@@ -1,3 +1,19 @@
+0.008_003	2020-02-22	T. R. Wyant
+    NOT RELEASED TO CPAN
+
+    Add new() argument index_locations which causes locations to be
+    indexed during the parse. This defaults based on whether a location
+    argument was provided, and whether the string being parsed is a
+    PPI::Element.
+
+    Eliminate methods index_locations() and purge_locations(), for the same
+    reasons as in PPIx::Regexp (stability of PPI::Element refaddrs)
+
+    Have ppi() method index locations and then remove the tokens injected to
+    get the logical line number, logical filename, and column correct.
+
+    Add -location option to eg/pqldump.
+
 0.008_002	2020-02-18	T. R. Wyant
     NOT RELEASED TO CPAN
 
