@@ -7,7 +7,6 @@ use warnings;
 
 use Carp;
 use PPI::Document;
-use PPI::Dumper;
 use PPIx::QuoteLike;
 use PPIx::QuoteLike::Constant qw{ @CARP_NOT };
 use PPIx::QuoteLike::Utils qw{ __instance };
@@ -83,9 +82,7 @@ sub dump : method {	## no critic (ProhibitBuiltinHomonyms)
 }
 
 sub list {
-    my ( $self, $split ) = @_;
-    __PACKAGE__ eq caller	# Only this package is allowed to
-	or $split = undef;	# set the $split argument.
+    my ( $self ) = @_;
     my $indent;
     my $obj = $self->{object};
     my @rslt;
@@ -127,8 +124,8 @@ sub list {
 	    $self->_variables( $elem ),
 	);
 	my @ppi;
-	@ppi = $self->_ppi( $elem, $split )
-	    and push @line, shift @ppi;
+	@ppi = $self->_ppi( $elem )
+	    and shift @ppi;	# Ignore PPI::Document
 	foreach ( @ppi ) {
 	    if ( $self->{locations} ) {
 		s/ ( [0-9]+ \s+ \] ) /$1  /smxg
@@ -156,7 +153,7 @@ sub print : method {	## no critic (ProhibitBuiltinHomonyms)
 sub string {
     my ( $self ) = @_;
     my $margin = ' ' x $self->{margin};
-    return join '', map { "$margin$_\n" } $self->list( 1 );
+    return join '', map { "$margin$_\n" } $self->list();
 }
 
 {
@@ -222,11 +219,13 @@ sub _perl_version {
 }
 
 sub _ppi {
-    my ( $self, $elem, $split ) = @_;
+    my ( $self, $elem ) = @_;
 
     $self->{ppi}
 	and $elem->can( 'ppi' )
 	or return;
+
+    require PPI::Dumper;
 
     # PPI::Dumper reports line_number(), but I want
     # logical_line_number(). There is no configuration for this, but the
@@ -242,16 +241,7 @@ sub _ppi {
 	map { $_ => $self->{$_} } qw{ indent locations },
     );
 
-    my $str = $dumper->string();
-    chomp $str;
-
-    # Remove any indentation from the PPI::Document
-    $str =~ s/ \A \s+ //smx;
-
-    $split
-	and return split qr{ \n }smx, $str;
-
-    return $str;
+    return $dumper->list();
 }
 
 sub _quote {
