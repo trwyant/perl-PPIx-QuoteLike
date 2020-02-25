@@ -1,40 +1,18 @@
-0.008_003	2020-02-22	T. R. Wyant
-    NOT RELEASED TO CPAN
-
+0.008_01	2020-02-25	T. R. Wyant
     Add new() argument index_locations which causes locations to be
     indexed during the parse. This defaults based on whether a location
     argument was provided, and whether the string being parsed is a
     PPI::Element.
 
-    Eliminate methods index_locations() and purge_locations(), for the same
-    reasons as in PPIx::Regexp (stability of PPI::Element refaddrs)
-
-    Have ppi() method index locations and then remove the tokens injected to
-    get the logical line number, logical filename, and column correct.
-
-    Add -location option to eg/pqldump.
-
-0.008_002	2020-02-18	T. R. Wyant
-    NOT RELEASED TO CPAN
-
     Add method statement(), which returns the PPI statement containing
     the string element, or nothing if none.
 
-    Add the rest of the PPI::Element location methods, to wit:
+    Add PPI::Element location methods, to wit: location(),
     column_number(), line_number(), logical_filename(),
     logical_line_number(), and visual_column_number().
 
-0.008_001	2020-02-17	T. R. Wyant
-    NOT RELEASED TO CPAN
-
-    Support locations relative to containing document if specified to
-    PPIx::QuoteLike->new(), or if the string is a PPI::Element.
-    Specifically, add PPIx::QuoteLike->index_locations(),
-    PPIx::QuoteLike->flush_locations(), and
-    PPIx::QuoteLike::Token->location().
-
-    Add ::Utils::is_ppi_quotelike_element() which returns true if the
-    argument is a PPI::Element of interest to us.
+    Add PPIx::QuoteLike::Utils::is_ppi_quotelike_element() which returns
+    true if the argument is a PPI::Element of interest to us.
 
     All objects now have a variables() method inherited from
     PPIx::QuoteLike::Token. This method returns nothing unless
