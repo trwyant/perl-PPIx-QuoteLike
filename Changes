@@ -1,4 +1,4 @@
-0.008_01	2020-02-25	T. R. Wyant
+0.009		2020-02-27	T. R. Wyant
     Add new() argument index_locations which causes locations to be
     indexed during the parse. This defaults based on whether a location
     argument was provided, and whether the string being parsed is a
