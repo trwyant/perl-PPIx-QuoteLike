@@ -211,14 +211,8 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 		}
 
 		if ( $content =~ m/ \G ( \\ . | [^\\\$\@]+ ) /smxgc ) {
-		    my $content = $1;
-		    @children
-			and $children[-1]->isa(
-			    'PPIx::QuoteLike::Token::String' )
-			and $content = ( pop @children )->content() .
-		    $content;
 		    push @children, $self->_make_token(
-			String => content => $content,
+			String => content => "$1",
 		    );
 		    redo;
 		}
@@ -227,8 +221,6 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 	    # We might have consecutive strings if _interpolation()
 	    # generated a string rather than an interpolation. Merge
 	    # these.
-	    # FIXME if I'm to tokenize strictly left-to-right I need to
-	    # do this on the fly.
 	    my @rslt;
 	    foreach my $elem ( @children ) {
 		if ( $elem->isa( 'PPIx::QuoteLike::Token::String' ) &&
