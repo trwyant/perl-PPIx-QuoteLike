@@ -1,8 +1,4 @@
-0.009_02	2020-03-03	T. R. Wyant
-    Merge ::String fragments before making objects rather than merge
-    consecutive ::String objects. A possibly-micro speed optimization.
-
-0.009_01	2020-03-02	T. R. Wyant
+0.010		2020-03-09	T. R. Wyant
     Remove redundant and poorly-performing code introduced in version
     0.009.
 
