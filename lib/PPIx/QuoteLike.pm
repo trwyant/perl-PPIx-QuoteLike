@@ -863,6 +863,17 @@ reasonably like string literals. Its real reason for being is to find
 interpolated variables for L<Perl::Critic|Perl::Critic> policies and
 similar code.
 
+=head1 DEPRECATION NOTICE
+
+The L<postderef|/postderef> argument to L<new()|/new> is being put
+through a deprecation cycle and retracted. After the retraction, postfix
+dereferences will always be recognized. This is the default behaviour
+now.
+
+Starting with the first release after October 1 2020, the first use of
+this argument will warn. Six months after that all uses will warn. After
+a further six months, all uses will become fatal.
+
 =head1 INHERITANCE
 
 C<PPIx::QuoteLike> is not descended from any other class.
@@ -926,6 +937,9 @@ the location of the C<$source> argument if that was a
 L<PPI::Element|PPI::Element>, otherwise no locations will be available.
 
 =item postderef
+
+B<THIS ARGUMENT IS DEPRECATED>.
+See L<DEPRECATION NOTICE|/DEPRECATION NOTICE> above for the details.
 
 This Boolean argument determines whether postfix dereferencing is
 recognized in interpolation. If unspecified, or specified as C<undef>,
