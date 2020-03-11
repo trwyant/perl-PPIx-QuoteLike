@@ -210,6 +210,10 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 			[ CLASS_UNKNOWN, $seq,
 			    error => "Unknown charname '$name'" ] :
 			[ CLASS_STRING, $seq ];
+		# NOTE in the following that I do not read perldata as
+		# saying there can be space between the sigil and the
+		# variable name, but Perl itself seems to accept it as
+		# of 5.30.1.
 		} elsif ( $content =~ m/ \G ( [\$\@] \#? \$* ) /smxgc ) {
 		    push @children, $self->_interpolation( "$1", $content );
 		} elsif ( $content =~ m/ \G ( \\ . | [^\\\$\@]+ ) /smxgc ) {
@@ -719,7 +723,7 @@ sub _link_elems {
 	    {
 		use re qw{ eval };
 		local $" = '|';
-		$REGEXP_CACHE{$ql} = qr/($ql(?:@parts)*$qr)/;
+		$REGEXP_CACHE{$ql} = qr/($ql(?:@parts)*$qr)/sm;
 	    }
 
 	    return $REGEXP_CACHE{$ql};
