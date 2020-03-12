@@ -11,9 +11,9 @@ use Test::More 0.88;	# Because of done_testing();
 
 {
     note 'Parse "foo${bar}baz"';
-    my $ppi = PPI::Document->new( \<<'EOD' );
-#line 42 the_answer
-"foo${bar}baz";
+    my $ppi = PPI::Document->new( \<<"EOD" );
+#line 2 the_answer@{[ "\n" x 40 ]}
+"foo\${bar}baz";
 EOD
     my $qd = $ppi->find( 'PPI::Token::Quote::Double' );
     ok $qd, 'Found PPI::Token::Quote::Double';
@@ -22,17 +22,17 @@ EOD
     my $pql = PPIx::QuoteLike->new( $qd->[0] );
     my @token = $pql->elements();
     cmp_ok scalar @token, '==', 6, 'Found 6 tokens in string';
-    is_deeply $token[0]->location(), [ 2, 1, 1, 42, 'the_answer' ],
+    is_deeply $token[0]->location(), [ 42, 1, 1, 42, 'the_answer' ],
 	q<Token 0 ('') location>;
-    is_deeply $token[1]->location(), [ 2, 1, 1, 42, 'the_answer' ],
+    is_deeply $token[1]->location(), [ 42, 1, 1, 42, 'the_answer' ],
 	q<Token 1 ('"') location>;
-    is_deeply $token[2]->location(), [ 2, 2, 2, 42, 'the_answer' ],
+    is_deeply $token[2]->location(), [ 42, 2, 2, 42, 'the_answer' ],
 	q<Token 2 ('foo') location>;
-    is_deeply $token[3]->location(), [ 2, 5, 5, 42, 'the_answer' ],
+    is_deeply $token[3]->location(), [ 42, 5, 5, 42, 'the_answer' ],
 	q<Token 3 ('${bar}') location>;
-    is_deeply $token[4]->location(), [ 2, 11, 11, 42, 'the_answer' ],
+    is_deeply $token[4]->location(), [ 42, 11, 11, 42, 'the_answer' ],
 	q<Token 4 ('baz') location>;
-    cmp_ok $token[4]->line_number(), '==', 2,
+    cmp_ok $token[4]->line_number(), '==', 42,
 	q<Token 4 ('baz') line_number()>;
     cmp_ok $token[4]->column_number(), '==', 11,
 	q<Token 4 ('baz') column_number()>;
@@ -42,11 +42,11 @@ EOD
 	q<Token 4 ('baz') logical_line_number()>;
     cmp_ok $token[4]->logical_filename(), 'eq', 'the_answer',
 	q<Token 4 ('baz') logical_filename()>;
-    is_deeply $token[5]->location(), [ 2, 14, 14, 42, 'the_answer' ],
+    is_deeply $token[5]->location(), [ 42, 14, 14, 42, 'the_answer' ],
 	q<Token 5 ('"') location>;
-    is_deeply $pql->location(), [ 2, 1, 1, 42, 'the_answer' ],
+    is_deeply $pql->location(), [ 42, 1, 1, 42, 'the_answer' ],
 	q<String location>;
-    cmp_ok $pql->line_number(), '==', 2, q<String line_number()>;
+    cmp_ok $pql->line_number(), '==', 42, q<String line_number()>;
     cmp_ok $pql->column_number(), '==', 1, q<String column_number()>;
     cmp_ok $pql->visual_column_number(), '==', 1,
 	q<String visual_column_number()>;
@@ -59,13 +59,13 @@ EOD
     my $ppi2 = $token[3]->ppi();
     @token = $ppi2->tokens();
     cmp_ok scalar @token, '==', 4, 'Interpolation PPI has 4 tokens';
-    is_deeply $token[0]->location(), [ 2, 5, 5, 42, 'the_answer' ],
+    is_deeply $token[0]->location(), [ 42, 5, 5, 42, 'the_answer' ],
 	q<Token 0 ('$') location>;
-    is_deeply $token[1]->location(), [ 2, 6, 6, 42, 'the_answer' ],
+    is_deeply $token[1]->location(), [ 42, 6, 6, 42, 'the_answer' ],
 	q<Token 1 ('{') location>;
-    is_deeply $token[2]->location(), [ 2, 7, 7, 42, 'the_answer' ],
+    is_deeply $token[2]->location(), [ 42, 7, 7, 42, 'the_answer' ],
 	q<Token 2 ('bar') location>;
-    is_deeply $token[3]->location(), [ 2, 10, 10, 42, 'the_answer' ],
+    is_deeply $token[3]->location(), [ 42, 10, 10, 42, 'the_answer' ],
 	q<Token 5 ('}') location>;
 }
 

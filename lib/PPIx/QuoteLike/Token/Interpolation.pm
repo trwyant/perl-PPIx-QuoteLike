@@ -6,10 +6,11 @@ use strict;
 use warnings;
 
 use Carp;
+use List::Util ();
 use PPI::Document;
 use PPIx::QuoteLike::Constant qw{
     LOCATION_COLUMN
-    LOCATION_LOGICAL_LINE
+    LOCATION_LINE
     LOCATION_LOGICAL_FILE
     VARIABLE_RE
     @CARP_NOT
@@ -25,15 +26,16 @@ sub ppi {
     unless ( $self->{ppi} ) {
 	my $content;
 	my $location = $self->{location};
-	if ( $location ) {
-	    my $fn;
-	    if( defined( $fn = $location->[LOCATION_LOGICAL_FILE] ) ) {
+
+	if ( $location && $location->[LOCATION_LINE] > 1 ) {
+	    $content = '#line 2';
+	    if ( defined( my $fn = $location->[LOCATION_LOGICAL_FILE] ) ) {
 		$fn =~ s/ (?= [\\"] ) /\\/smxg;
-		$content = qq{#line $location->[LOCATION_LOGICAL_LINE] "$fn"\n};
-	    } else {
-		$content = qq{#line $location->[LOCATION_LOGICAL_LINE]\n};
+		$content .= qq< "$fn">;
 	    }
-	    $content .= ' ' x ( $location->[LOCATION_COLUMN] - 1 );
+	    $content .=
+		( "\n" x ( $location->[LOCATION_LINE] - 1 ) ) .
+		( ' ' x ( $location->[LOCATION_COLUMN] - 1 ) );
 	}
 
 ##	The following code is tempting, but I really, really want to
@@ -61,13 +63,16 @@ sub ppi {
 		and $elem->remove();
 	    # Remove the white space if we find it, and if it in fact
 	    # represents only the white space we injected to get the
-	    # column numbers right.
-	    my $wid = $location->[LOCATION_COLUMN] - 1;
-	    $wid
-		and $elem = $self->{ppi}->child( 0 )
-		and $elem->isa( 'PPI::Token::Whitespace' )
-		and $wid == length $elem->content()
-		and $elem->remove();
+	    # line and column numbers right.
+	    my $wid = List::Util::max( 0, $location->[LOCATION_COLUMN] - 1
+		+ $location->[LOCATION_LINE] - 2 );
+	    while ( $wid
+		    and $elem = $self->{ppi}->child( 0 )
+		    and $elem->isa( 'PPI::Token::Whitespace' )
+		    and ( $wid - length $elem->content() ) >= 0
+	    ) {
+		$elem->remove();
+	    }
 	}
     }
     return $self->{ppi};
