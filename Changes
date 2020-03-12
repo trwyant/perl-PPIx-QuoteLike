@@ -1,3 +1,6 @@
+0.010_03	2020-03-12	T. R. Wyant
+    Correct injected white space removal in ppi().
+
 0.010_02	2020-03-12	T. R. Wyant
     Try to get correct line number in derived PPI. This is done by
     injecting "\n" as needed. The initial #line directive becomes "#line
