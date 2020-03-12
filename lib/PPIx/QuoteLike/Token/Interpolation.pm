@@ -6,7 +6,6 @@ use strict;
 use warnings;
 
 use Carp;
-use List::Util ();
 use PPI::Document;
 use PPIx::QuoteLike::Constant qw{
     LOCATION_COLUMN
@@ -64,14 +63,14 @@ sub ppi {
 	    # Remove the white space if we find it, and if it in fact
 	    # represents only the white space we injected to get the
 	    # line and column numbers right.
-	    my $wid = List::Util::max( 0, $location->[LOCATION_COLUMN] - 1
-		+ $location->[LOCATION_LINE] - 2 );
-	    while ( $wid
-		    and $elem = $self->{ppi}->child( 0 )
-		    and $elem->isa( 'PPI::Token::Whitespace' )
-		    and ( $wid - length $elem->content() ) >= 0
-	    ) {
-		$elem->remove();
+	    if ( ( my $wid = $location->[LOCATION_COLUMN] - 1 +
+		    $location->[LOCATION_LINE] - 2 ) > 0 ) {
+		while ( $elem = $self->{ppi}->child( 0 )
+			and $elem->isa( 'PPI::Token::Whitespace' )
+			and ( $wid -= length $elem->content() ) >= 0
+		) {
+		    $elem->remove();
+		}
 	    }
 	}
     }
