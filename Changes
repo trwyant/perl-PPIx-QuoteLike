@@ -1,3 +1,8 @@
+0.010_02	2020-03-12	T. R. Wyant
+    Try to get correct line number in derived PPI. This is done by
+    injecting "\n" as needed. The initial #line directive becomes "#line
+    2", but is suppressed if I need to generate line 1.
+
 0.010_01	2020-03-11	T. R. Wyant
     Deprecate new() argument postderef. At this stage it is only
     documented as deprecated. In the first release after October 1 2020
