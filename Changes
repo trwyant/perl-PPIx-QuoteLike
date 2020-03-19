@@ -1,3 +1,16 @@
+0.010_04	2020-03-19	T. R. Wyant
+    Revert "Try to get correct line number in derived PPI"
+    
+    This reverts commit bca421a3a0050dfabee65f69ad5a54e771b67550.
+    
+    The reverted commit tried to convince PPI to get the correct line number
+    (as opposed to logical line number) by padding the beginning of the
+    derived document with "\n". This turned out to be very slow when the
+    original document was tens or hundreds of thousands of lines long.
+
+    Add 'short' option to dumper. This removes leading
+    'PPIx::QuoteLike::' from class names.
+
 0.010_03	2020-03-12	T. R. Wyant
     Correct injected white space removal in ppi().
 
