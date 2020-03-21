@@ -73,14 +73,6 @@ sub ppi {
     return $self->{ppi};
 }
 
-# For the moment this is package-private and subject to change or
-# retraction without notice. If there is need, it will be made public
-# by stripping the leading underscores and documenting it.
-sub __purge_ppi {
-    my ( $self ) = @_;
-    return delete $self->{ppi};
-}
-
 sub variables {
     my ( $self ) = @_;
     return __variables( $self->ppi() );
