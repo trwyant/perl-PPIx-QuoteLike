@@ -269,17 +269,6 @@ __END_OF_HERE_DOCUMENT
 ";
     }
 
-=begin comment
-
-    $val =~ m/ [{}] /smx
-	or return "q{$val}";
-    $val =~ m{ / }smx
-	or return "q/$val/";
-
-=end comment
-
-=cut
-
     $val =~ s/ (?= [\\'] )/\\/smxg;
     return "'$val'";
 }

@@ -34,6 +34,8 @@ use PPIx::QuoteLike::Utils qw{
     statement
     visual_column_number
     __instance
+    __match_enclosed
+    __matching_delimiter
 };
 use Scalar::Util ();
 use Text::Tabs ();
@@ -58,9 +60,9 @@ use constant MISMATCHED_DELIM	=>
 $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 
 {
-    my $match_sq = _match_enclosed( qw< ' > );
-    my $match_dq = _match_enclosed( qw< " > );
-    my $match_bt = _match_enclosed( qw< ` > );
+    my $match_sq = __match_enclosed( qw< ' > );
+    my $match_dq = __match_enclosed( qw< " > );
+    my $match_bt = __match_enclosed( qw< ` > );
 
     sub new {	## no critic (RequireArgUnpacking)
 	my ( $class, $source, %arg ) = @_;
@@ -116,7 +118,7 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 	    $self->{interpolates} = 'qq' eq $type ||
 		'qx' eq $type && q<'> ne $start_delim;
 	    $content = substr $string, ( pos $string || 0 );
-	    $end_delim = _matching_delimiter( $start_delim );
+	    $end_delim = __matching_delimiter( $start_delim );
 	    if ( $end_delim eq substr $content, -1 ) {
 		chop $content;
 	    } else {
@@ -157,7 +159,7 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 		and warn "Initial match '$type$start_delim'\n";
 	    $self->{interpolates} = q<'> ne $start_delim;
 	    $content = substr $string, ( pos $string || 0 );
-	    $end_delim = _matching_delimiter( $start_delim );
+	    $end_delim = __matching_delimiter( $start_delim );
 	    if ( $end_delim eq substr $content, -1 ) {
 		chop $content;
 	    } else {
@@ -201,7 +203,7 @@ $PPIx::QuoteLike::DEFAULT_POSTDEREF = 1;
 		    # otherwise-interpolating string. That is to say,
 		    # "\N{$foo}" is simply invalid, and does not even
 		    # try to interpolate $foo.  {
-		    # TODO use $re = _match_enclosed( '{' ); # }
+		    # TODO use $re = __match_enclosed( '{' ); # }
 		    my ( $seq, $name ) = ( $1, $2 );
 		    # TODO The Regexp is certainly too permissive. For
 		    # the moment all I am doing is disallowing
@@ -608,7 +610,7 @@ sub __decode {
 
 	if ( $_[2] =~ m/ \G (?= \{ ) /smxgc ) {
 	    # variable name enclosed in {}
-	    my $delim_re = _match_enclosed( qw< { > );
+	    my $delim_re = __match_enclosed( qw< { > );
 	    $_[2] =~ m/ \G ( $delim_re ) /smxgc
 		and return [ CLASS_INTERPOLATION, "$sigil$1" ];
 	    $_[2] =~ m/ \G ( .* ) /smxgc
@@ -623,7 +625,7 @@ sub __decode {
 	    my $interp = "$sigil$1";
 	    while ( $_[2] =~ m/ \G  ( (?: -> )? ) (?= ( [[{] ) ) /smxgc ) { # }]
 		my $lead_in = $1;
-		my $delim_re = _match_enclosed( $2 );
+		my $delim_re = __match_enclosed( $2 );
 		if ( $_[2] =~ m/ \G ( $delim_re ) /smxgc ) {
 		    $interp .= "$lead_in$1";
 		} else {
@@ -675,81 +677,6 @@ sub _link_elems {
 }
 
 {
-    our %REGEXP_CACHE;
-
-    my %matching_bracket = qw/ ( ) [ ] { } < > /;
-
-    sub _match_enclosed {
-	my ( $left ) = @_;
-	my $ql = quotemeta $left;
-	$REGEXP_CACHE{$ql}
-	    and return $REGEXP_CACHE{$ql};
-	if ( my $right = $matching_bracket{$left} ) {
-
-=begin comment
-
-	    return ( $REGEXP_CACHE{$left} =
-		qr/ (
-		    \Q$left\E
-		    (?:
-			(?> [^\\\Q$left$right\E]+ ) |
-			(?> \$ [\Q$left$right\E] ) |
-			(?> \\ . ) |
-			(?-1)
-		    )*
-		    \Q$right\E
-		) /smx
-	    );
-
-=end comment
-
-=cut
-
-	    # Based on Regexp::Common $RE{balanced} 2.113 (because I
-	    # can't use (?-1)
-
-	    my $ql = quotemeta $left;
-	    my $qr = quotemeta $right;
-	    my $pkg = __PACKAGE__;
-	    my $r  = "(??{ \$${pkg}::REGEXP_CACHE{'$ql'} })";
-
-	    my @parts = (
-		"(?>[^\\\\$ql$qr]+)",
-		"(?>\\\$[$ql$qr])",
-		'(?>\\\\.)',
-		$r,
-	    );
-
-	    {
-		use re qw{ eval };
-		local $" = '|';
-		$REGEXP_CACHE{$ql} = qr/($ql(?:@parts)*$qr)/sm;
-	    }
-
-	    return $REGEXP_CACHE{$ql};
-
-	} else {
-
-	    # Based on Regexp::Common $RE{delimited}{-delim=>'`'}
-	    return ( $REGEXP_CACHE{$ql} ||=
-		qr< (?:
-		    (?: \Q$left\E )
-		    (?: [^\\\Q$left\E]* (?: \\ . [^\\\Q$left\E]* )* )
-		    (?: \Q$left\E )
-		) >smx
-	    );
-	}
-    }
-
-    sub _matching_delimiter {
-	my ( $left ) = @_;
-	my $right = $matching_bracket{$left}
-	    or return $left;
-	return $right;
-    }
-}
-
-{
     my %allow_subscr	= map { $_ => 1 } qw{ % @ };
 
     # Match a postfix deref at the current position in the argument. If
@@ -770,7 +697,7 @@ sub _link_elems {
 	    $allow_subscr{$sigil} &&
 	    $_[0] =~ m/ \G (?= ( [[{] ) ) /smxgc	# }]
 	) {
-	    my $re = _match_enclosed( "$1" );
+	    my $re = __match_enclosed( "$1" );
 	    $_[0] =~ m/ \G $re /smxgc
 		and return "$match$1";
 	}
@@ -1197,6 +1124,13 @@ or element zero if no argument is specified.
 =head2 variables
 
  say "Interpolates $_" for $str->variables();
+
+B<NOTE> that this method is discouraged, and may well be deprecated and
+removed. My problem with it is that it returns variable names rather
+than L<PPI::Element|PPI::Element> objects, leaving you no idea how the
+variables are used. It was originally written for the benefit of
+L<Perl::Critic::Policy::Variables::ProhibitUnusedVarsStricter|Perl::Critic::Policy::Variables::ProhibitUnusedVarsStricter>,
+but has proven inadequate to that policy's needs.
 
 This convenience method returns all interpolated variables. Each is
 returned only once, and they are returned in no particular order. If the
