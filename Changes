@@ -1,4 +1,4 @@
-0.010_05	2020-03-24	T. R. Wyant
+0.011		2020-03-31	T. R. Wyant
     Normalize interpolation before feeding to PPI. This produces a
     more-easily-analyzed PPI parse.
 
@@ -6,28 +6,6 @@
     Perl::Critic::Policy::Variables::ProhibitUnusedVarsStricter, but turned
     out to be inadequate for the job.
 
-0.010_04	2020-03-19	T. R. Wyant
-    Revert "Try to get correct line number in derived PPI"
-    
-    This reverts commit bca421a3a0050dfabee65f69ad5a54e771b67550.
-    
-    The reverted commit tried to convince PPI to get the correct line number
-    (as opposed to logical line number) by padding the beginning of the
-    derived document with "\n". This turned out to be very slow when the
-    original document was tens or hundreds of thousands of lines long.
-
-    Add 'short' option to dumper. This removes leading
-    'PPIx::QuoteLike::' from class names.
-
-0.010_03	2020-03-12	T. R. Wyant
-    Correct injected white space removal in ppi().
-
-0.010_02	2020-03-12	T. R. Wyant
-    Try to get correct line number in derived PPI. This is done by
-    injecting "\n" as needed. The initial #line directive becomes "#line
-    2", but is suppressed if I need to generate line 1.
-
-0.010_01	2020-03-11	T. R. Wyant
     Deprecate new() argument postderef. At this stage it is only
     documented as deprecated. In the first release after October 1 2020
     it will warn on the first use. Eventually it will be retracted, and
