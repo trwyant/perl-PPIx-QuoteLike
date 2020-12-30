@@ -132,7 +132,8 @@ names, without the leading sigil. Nothing is captured.
 =head1 SUPPORT
 
 Support is by the author. Please file bug reports at
-L<https://rt.cpan.org>, or in electronic mail to the author.
+L<https://github.com/trwyant/perl-PPIx-QuoteLike/issues>, or in
+electronic mail to the author.
 
 =head1 AUTHOR
 

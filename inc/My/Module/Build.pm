@@ -77,7 +77,8 @@ C<--test_files> argument.
 =head1 SUPPORT
 
 Support is by the author. Please file bug reports at
-L<https://rt.cpan.org>, or in electronic mail to the author.
+L<https://github.com/trwyant/perl-PPIx-QuoteLike/issues>, or in
+electronic mail to the author.
 
 =head1 AUTHOR
 
