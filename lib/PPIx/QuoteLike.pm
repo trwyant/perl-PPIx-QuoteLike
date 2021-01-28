@@ -133,12 +133,12 @@ use constant NO_INDENTATION	=>
 	# space between the '<<' and the termination string is not
 	# allowed if the termination string is not quoted in some way.
 	} elsif ( $string =~ m/ \A \s* ( << ) ( \s* ) ( ~? ) ( \s* )
-	    ( \w+ | $match_sq | $match_dq | $match_bt ) \n /smxgc ) {
+	    ( [\\]? \w+ | $match_sq | $match_dq | $match_bt ) \n /smxgc ) {
 	    ( $type, $gap, $indented, $gap2, $start_delim ) = (
 		$1, $2, $3, $4, $5 );
 	    $arg{trace}
 		and warn "Initial match '$type$start_delim$gap$indented'\n";
-	    $self->{interpolates} = $start_delim !~ m/ \A ' /smx;
+	    $self->{interpolates} = $start_delim !~ m/ \A [\\'] /smx;
 	    $content = substr $string, ( pos $string || 0 );
 	    $end_delim = _unquote( $start_delim );
 	    # NOTE that the indentation is specifically space or tab
