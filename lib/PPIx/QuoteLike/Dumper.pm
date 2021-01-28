@@ -100,7 +100,8 @@ sub list {
 	    qw{ type start finish };
 	push @rslt,
 	    join "\t", $self->_class_name( $obj ), $string,
-	    _format_attr( $obj, qw{ encoding failures interpolates } ),
+	    _format_attr( $obj, qw{ encoding failures interpolates
+		indentation } ),
 	    $self->_perl_version( $obj ),
 	    $self->_variables( $obj ),
 	    ;
