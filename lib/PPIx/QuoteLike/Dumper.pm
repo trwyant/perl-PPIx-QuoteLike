@@ -206,10 +206,11 @@ sub _format_attr {
 
 sub _format_content {
     my ( $obj, $method, @arg ) = @_;
-    my $val = $obj->$method( @arg );
-    ref $val
-	and $val = $val->content();
-    return defined $val ? $val : '?';
+    my @val = map { $_->content() }
+	    grep { $_->significant() }
+	    $obj->$method( @arg )
+	or return '?';
+    return join '', @val;
 }
 
 sub _isa {
