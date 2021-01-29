@@ -1,3 +1,7 @@
+0.014_02	2021-01-29	T. R. Wyant
+    Include an indented here document's '~' in the
+    PPIx::QuoteLike::Dumper output.
+
 0.014_01	2021-01-29	T. R. Wyant
     Handle <<\EOD and <<~\EOD, which are equivalent to <<'EOD' and
     <<~'EOD', respectively. That is, they end on 'EOD' and do not
