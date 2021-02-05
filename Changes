@@ -1,13 +1,6 @@
-0.014_02	2021-01-29	T. R. Wyant
-    Include an indented here document's '~' in the
-    PPIx::QuoteLike::Dumper output.
-
-0.014_01	2021-01-29	T. R. Wyant
+0.015		2021-02-05	T. R. Wyant
     Handle <<\EOD and <<~\EOD, which are equivalent to <<'EOD' and
-    <<~'EOD', respectively. That is, they end on 'EOD' and do not
-    interpolate. I found support for this in toke.c as far back as Perl
-    5.005_04, though that version's perlop does not mention it. So I am
-    assuming it was in Perl from 5.0.
+    <<~'EOD', respectively.
 
     Recognize indented here documents. Thanks to Olaf Alders (oalders)
     for alerting me to this omission.
