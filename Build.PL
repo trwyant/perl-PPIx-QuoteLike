@@ -23,7 +23,7 @@ my %args = (
 	perl => $meta->requires_perl(),
     ),
     license => 'perl',
-    add_to_cleanup => [ qw{ cover_db xt/author/optionals } ],
+    add_to_cleanup => [ qw{ cover_db } ],
 );
 
 
