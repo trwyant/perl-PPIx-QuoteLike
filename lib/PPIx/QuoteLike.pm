@@ -657,7 +657,6 @@ sub __decode {
 
 }
 
-
 # This subroutine was created in an attempt to simplify control flow.
 # Argument 2 (from 0) is not unpacked because the caller needs to see
 # the side effects of matches made on it.
@@ -1409,6 +1408,7 @@ L<Perl6::Pugs|Perl6::Pugs>. Enough said.
 =head1 SUPPORT
 
 Support is by the author. Please file bug reports at
+L<https://rt.cpan.org/Public/Dist/Display.html?Name=PPIx-QuoteLike>,
 L<https://github.com/trwyant/perl-PPIx-QuoteLike/issues>, or in
 electronic mail to the author.
 
