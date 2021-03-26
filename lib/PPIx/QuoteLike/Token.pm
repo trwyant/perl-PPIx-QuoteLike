@@ -16,7 +16,7 @@ use PPIx::QuoteLike::Utils qw{
     visual_column_number
 };
 
-our $VERSION = '0.015_01';
+our $VERSION = '0.016';
 
 # Private to this package.
 sub __new {
