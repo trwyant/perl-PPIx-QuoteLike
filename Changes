@@ -1,3 +1,6 @@
+0.016_01	2021-04-09	T. R. Wyant
+    All uses of postderef arg to new() now warn.
+
 0.016		2021-03-26	T. R. Wyant
     Add rt.cpan.org back to bug reporting methods. Long live RT!
 
