@@ -334,7 +334,7 @@ sub delimiters {
 
     my %deprecate = (
 	attribute => {
-	    postderef	=> 1,
+	    postderef	=> 2,
 	},
     );
 
@@ -997,9 +997,9 @@ through a deprecation cycle and retracted. After the retraction, postfix
 dereferences will always be recognized. This is the default behaviour
 now.
 
-Starting with version 0.012_01, the first use of this argument will
-warn. With the first release after April 8 2020, all uses will warn.
-After a further six months, all uses will become fatal.
+Starting with version 0.012_01, the first use of this argument warned.
+With version 0.016_01, all uses will warn. With the first release after
+October 15 2021, all uses will become fatal.
 
 =head1 INHERITANCE
 
