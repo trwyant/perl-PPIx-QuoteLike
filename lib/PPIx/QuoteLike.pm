@@ -988,7 +988,7 @@ object initialized from such a
 L<PPI::Token::HereDoc|PPI::Token::HereDoc> will be seen as having an
 indentation of C<''> regardless of the actual indentation in the source.
 I believe this restriction will go away when
-L<https://github.com/adamkennedy/PPI/issues/251> is resolved.
+L<https://github.com/Perl-Critic/PPI/issues/251> is resolved.
 
 =head1 DEPRECATION NOTICE
 
