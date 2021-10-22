@@ -1,5 +1,6 @@
-0.017_01	2021-10-15	T. R. Wyant
+0.018		2021-10-22	T. R. Wyant
     Argument postderef is now fatal.
+
     Correct generation of 'provides' metadata.  Thanks to Favio Poletti
     for blogging
     https://github.polettix.it/ETOOBUSY/2021/06/15/the-real-pause-workaround/,
