@@ -192,6 +192,7 @@ use constant NO_INDENTATION	=>
 
 	$self->{interpolates} = $self->{interpolates} ? 1 : 0;
 
+	defined or $_ = '' for $indented, $gap2;
 	$self->{type} = [
 	    $self->_make_token( CLASS_STRUCTURE, $type ),
 	    length $gap ?

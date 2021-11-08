@@ -10,6 +10,8 @@ use base qw{ Exporter };
 
 our $VERSION = '0.018';
 
+no warnings qw{ once };	# For older Perls.
+
 our @CARP_NOT = qw{
     PPIx::QuoteLike
     PPIx::QuoteLike::Constant
@@ -24,6 +26,8 @@ our @CARP_NOT = qw{
     PPIx::QuoteLike::Token::Whitespace
     PPIx::QuoteLike::Utils
 };
+
+use warnings qw{ once };
 
 our @EXPORT_OK = qw{
     ARRAY_REF
