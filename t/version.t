@@ -25,7 +25,6 @@ use constant OUTPUT_ENCODING	=> ':encoding(utf-8)';
 
 if ( SUFFICIENT_UTF8_SUPPORT_FOR_WEIRD_DELIMITERS ) {
     my $builder = Test::More->builder();
-    my $encoding = ':encoding(utf-8)';
     foreach my $method ( qw{ output failure_output todo_output } ) {
 	my $handle = $builder->$method();
 	binmode $handle, OUTPUT_ENCODING;
