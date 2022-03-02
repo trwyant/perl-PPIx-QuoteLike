@@ -153,7 +153,6 @@ sub requires {
 	'PPI::Dumper'	=> 1.117,
 	'Readonly'	=> 0,
 	'Scalar::Util'	=> 0,
-	'Text::Tabs'	=> 0,
 	base		=> 0,
 	constant	=> 0,
 	re		=> 0,
