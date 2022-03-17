@@ -1,4 +1,4 @@
-0.019_01	2022-03-10	T. R. Wyant
+0.020		2022-03-17	T. R. Wyant
     Correct and optimize the computation of logical column position (the
     one that takes account of tabs).
 
