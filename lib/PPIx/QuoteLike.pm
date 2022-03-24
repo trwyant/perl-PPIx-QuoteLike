@@ -735,12 +735,15 @@ sub __decode {
 		}
 	    }
 
+	    my @arg;
+
 	    if ( $self->postderef()
 		    and defined( my $deref = _match_postderef( $_[2] ) ) ) {
 		$interp .= $deref;
+		push @arg, postderef => 1;
 	    }
 
-	    return [ CLASS_INTERPOLATION, $interp ];
+	    return [ CLASS_INTERPOLATION, $interp, @arg ];
 	}
 
 	my $code;

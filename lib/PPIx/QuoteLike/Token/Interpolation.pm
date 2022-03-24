@@ -76,7 +76,7 @@ sub variables {
 
 sub __perl_version_introduced {
     my ( $self ) = @_;
-    $self->content() =~ m/ -> (?: \@ [[{*] | % [*] ) /smx
+    $self->{postderef}
 	and return '5.019005';
     return;
 }
