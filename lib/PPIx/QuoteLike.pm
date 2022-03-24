@@ -39,7 +39,7 @@ use PPIx::QuoteLike::Utils qw{
 };
 use Scalar::Util ();
 
-our $VERSION = '0.020';
+our $VERSION = '0.020_01';
 
 use constant CLASS_CONTROL       => 'PPIx::QuoteLike::Token::Control';
 use constant CLASS_DELIMITER     => 'PPIx::QuoteLike::Token::Delimiter';
