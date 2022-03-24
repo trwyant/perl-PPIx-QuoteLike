@@ -1,3 +1,6 @@
+0.020_02	2022-03-24	T. R. Wyant
+    Postfix %*, &*, and ** do not interpolate.
+
 0.020_01	2022-03-24	T. R. Wyant
     Correct perl_version_introduced() for interpolated postfix scalar
     deref.
