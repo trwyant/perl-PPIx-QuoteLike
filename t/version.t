@@ -108,12 +108,19 @@ is $obj->perl_version_introduced(), '5.015008',
     'Case-folded string was introduced in 5.15.8';
 is $obj->perl_version_removed(), undef, 'Case-folded string is still here';
 
-foreach my $sigil ( qw{ $ @ % } ) {
+# NOTE Can not use qw{} below because of '$#'.
+foreach my $sigil ( '$', '$#', '@' ) {
     $obj = PPIx::QuoteLike->new( qq/"\$x->$sigil*"/ );
     is $obj->perl_version_introduced(), '5.019005',
-	"Postfix dereference $sigil was introduced in 5.19.5'";
+	"Postfix dereference $sigil was introduced in 5.19.5";
     is $tok->perl_version_removed(), undef,
 	"Postfix dereference $sigil is still here";
+}
+
+foreach my $sigil ( qw{ % & * } ) {
+    $obj = PPIx::QuoteLike->new( qq/"\$x->$sigil*"/ );
+    is $obj->perl_version_introduced(), '5.000',
+	"\$->${sigil}* does not interpolate as postfix dereference";
 }
 
 $obj = PPIx::QuoteLike->new( <<HERE_DOC );

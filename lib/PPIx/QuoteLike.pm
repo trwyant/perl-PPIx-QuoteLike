@@ -787,7 +787,8 @@ sub _link_elems {
     # This would all be much easier if I could count on Perl 5.10
     sub _match_postderef {	## no critic (RequireArgUnpacking)
 	my $pos = pos $_[0];
-	$_[0] =~ m/ \G ( -> ) ( \$ \# | [\$\@%&*] ) /smxgc
+	# Only scalars and arrays interpolate
+	$_[0] =~ m/ \G ( -> ) ( \$ \# | [\$\@] ) /smxgc
 	    or return;
 	my $match = "$1$2";
 	my $sigil = $2;
