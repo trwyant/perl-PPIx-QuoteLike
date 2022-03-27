@@ -123,6 +123,12 @@ foreach my $sigil ( qw{ % & * } ) {
 	"\$->${sigil}* does not interpolate as postfix dereference";
 }
 
+foreach my $sigil ( qw{ % & * } ) {
+    $obj = PPIx::QuoteLike->new( qq/"\@{[\$x->$sigil*]}"/ );
+    is $obj->perl_version_introduced(), '5.019005',
+	"\@{[\$x->$sigil*]} interpolates as postfix dereference";
+}
+
 $obj = PPIx::QuoteLike->new( <<HERE_DOC );
 <<~'EOD'
     How doth the little crocodile

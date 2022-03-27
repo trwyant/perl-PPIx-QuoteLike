@@ -709,8 +709,17 @@ sub __decode {
 	if ( $_[2] =~ m/ \G (?= \{ ) /smxgc ) {
 	    # variable name enclosed in {}
 	    my $delim_re = __match_enclosed( qw< { > );
-	    $_[2] =~ m/ \G ( $delim_re ) /smxgc
-		and return [ CLASS_INTERPOLATION, "$sigil$1" ];
+	    if ( $_[2] =~ m/ \G $delim_re /smxgc ) {
+		my $rest = $1;
+		$rest =~ m/ \A \{ \s* \[ ( .* ) \] \s* \} \z /smx
+		    or return [ CLASS_INTERPOLATION, "$sigil$rest" ];
+		# At this point we have @{[ ... ]}.
+		my @arg;
+		$self->postderef()
+		    and _has_postderef( "$1" )
+		    and push @arg, postderef => 1;
+		return [ CLASS_INTERPOLATION, "$sigil$rest", @arg ];
+	    }
 	    $_[2] =~ m/ \G ( .* ) /smxgc
 		and return [ CLASS_UNKNOWN, "$sigil$1",
 		    error => MISMATCHED_DELIM ];
@@ -806,6 +815,37 @@ sub _link_elems {
 
 	pos $_[0] = $pos;
 	return;
+    }
+}
+
+{
+    no warnings qw{ qw };	## no critic (ProhibitNoWarnings)
+    my %is_postderef = map { $_ => 1 } qw{ $ $# @ % & * $* $#* @* %* &* ** };
+    sub _has_postderef {
+	my ( $string ) = @_;
+	my $doc = PPI::Document->new( \$string );
+	foreach my $elem ( @{ $doc->find( 'PPI::Token::Symbol' ) || [] } ) {
+	    my $next = $elem->snext_sibling()
+		or next;
+	    $next->isa( 'PPI::Token::Operator' )
+		or next;
+	    $next->content() eq '->'
+		or next;
+	    $next = $next->snext_sibling()
+		or next;
+	    $next->isa( 'PPI::Token::Cast' )
+		or next;
+	    my $content = $next->content();
+	    $is_postderef{$content}
+		or next;
+	    $content =~ m/ \* \z /smx
+		and return 1;
+	    $next = $next->snext_sibling()
+		or next;
+	    $next->isa( 'PPI::Structure::Subscript' )
+		and return 1;
+	}
+	return 0;
     }
 }
 

@@ -372,7 +372,7 @@ sub logical_line_number {
 
 	    # Based on Regexp::Common $RE{delimited}{-delim=>'`'}
 	    return ( $REGEXP_CACHE{$ql} ||=
-		qr< (?:
+		qr< (
 		    (?: \Q$left\E )
 		    (?: [^\\\Q$left\E]* (?: \\ . [^\\\Q$left\E]* )* )
 		    (?: \Q$left\E )
