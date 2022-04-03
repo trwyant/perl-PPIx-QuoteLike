@@ -39,7 +39,7 @@ our @EXPORT_OK = qw{
     __variables
 };
 
-our $VERSION = '0.020_03';
+our $VERSION = '0.021';
 
 # Readonly::Scalar my $BRACED_RE	=> __match_enclosed( LEFT_CURLY );
 Readonly::Scalar my $BRACKETED_RE	=> __match_enclosed( '[' ); # ]
