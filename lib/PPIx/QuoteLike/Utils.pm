@@ -629,10 +629,12 @@ can not be determined.
 
  say for __variables( PPI::Document->new( \'$foo' );
 
-B<NOTE> that this subroutine is discouraged, and may well be deprecated
-and removed. My problem with it is that it returns variable names rather
-than L<PPI::Element|PPI::Element> objects, leaving you no idea how the
-variables are used. It was originally written for the benefit of
+B<NOTE> that this subroutine is discouraged, and may well be deprecated and
+removed. I have two problems with it. The first is that it returns
+variable names rather than L<PPI::Element|PPI::Element> objects, leaving
+you no idea how the variables are used. The second is that it does not
+properly handle things like C<"${^CAPTURE[0]}">, and it seems infeasible
+to make it do so. It was originally written for the benefit of
 L<Perl::Critic::Policy::Variables::ProhibitUnusedVarsStricter|Perl::Critic::Policy::Variables::ProhibitUnusedVarsStricter>,
 but has proven inadequate to that policy's needs.
 
