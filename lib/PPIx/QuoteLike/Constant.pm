@@ -55,12 +55,15 @@ use constant HAVE_PPIX_REGEXP	=> do {
     };
 };
 
-# Location constants. Must align with PPI
+# The '## VERBATIM' annotations support test xt/author/verbatim.t
+## VERBATIM EXPECT 1
+## VERBATIM BEGIN PPI::Document
 use constant LOCATION_LINE         => 0;
 use constant LOCATION_CHARACTER    => 1;
 use constant LOCATION_COLUMN       => 2;
 use constant LOCATION_LOGICAL_LINE => 3;
 use constant LOCATION_LOGICAL_FILE => 4;
+## VERBATIM END
 
 use constant MINIMUM_PERL	=> '5.000';
 
