@@ -1,0 +1,142 @@
+# Explicit name of workflow. This is optional.
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#name
+name: Perl CI
+
+# Specify the events that trigger this workflow.
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#on
+# https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
+on:
+  push:
+  pull_request:
+
+
+# Define the jobs that make up the workflow.
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobs
+jobs:
+
+  # Define a job called 'test'
+  test:
+
+    # Create a matrix of configurations for the job. It will be run on
+    # the Cartesian product of the resources specified.
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstrategy
+    # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs
+    strategy:
+
+      # Do not cancel other jobs in the matrix if one of them fails
+      fail-fast: false
+
+      # The actual matrix
+      matrix:
+
+        # OS environments under which the job runs.
+        runner: [ubuntu-latest, macos-latest, windows-latest]
+        # Version of Perl to run. This specifies the most-recent Perl 5.
+        perl: [ '5' ]
+
+        # Add minimum Perl versions, which differ among operating
+        # systems
+        include:
+          - runner: ubuntu-latest
+            # v5.8.8 is the earliest known to work
+            perl: '5.8.8'
+          - runner: macos-latest
+            # v5.8.8 is the earliest known to work
+            perl: '5.8.8'
+          - runner: windows-latest
+            # v5.26.0 is the earliest known to work
+            perl: '5.26.0'
+    # Define where the job runs.
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
+    runs-on: ${{matrix.runner}}
+
+    # The name of this job
+    name: OS ${{matrix.runner}} Perl ${{matrix.perl}}
+
+    # The individual steps in the job
+    steps:
+
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    - name: Set up perl
+      # Specify the action performed by this step. In this case it is a
+      # custom action residing in repository shogo82148/actions-setup-perl
+      # and tagged v1. Yes, shogo82148 is the user name and
+      # actions-setup-perl is the repository name. See
+      # https://github.com/marketplace/actions/setup-perl-environment
+      # The available Perl versions are in
+      # https://github.com/shogo82148/actions-setup-perl/tree/main/versions
+      uses: shogo82148/actions-setup-perl@v1
+      # Specify variables to the action
+      with:
+          perl-version: ${{ matrix.perl }}
+          distribution: ${{ ( startsWith( matrix.runner, 'windows-' ) && 'strawberry' ) || 'default' }}
+
+    - name: Show Perl Version
+      # Run a command to display the version of Perl being used.
+      run: |
+        perl -v
+
+    - name: Install support modules
+      continue-on-error: true
+      run: |
+        cpanm -v
+        cpanm File::HomeDir Getopt::Long version
+
+    - name: Customize environment
+      run: |
+        perl .github/workflows/environment.PL
+
+    - name: Display local envoronment variables
+      run: |
+        echo MY_HOME=${{ env.MY_HOME }}
+        echo MY_IS_GITHUB_ACTION=${{ env.MY_IS_GITHUB_ACTION }}
+        echo MY_IS_UNIX=${{ env.MY_IS_UNIX }}
+        echo MY_IS_WINDOWS=${{ env.MY_IS_WINDOWS }}
+        echo MY_TOOLCHAIN_EUMM=${{ env.MY_TOOLCHAIN_EUMM }}
+        echo MY_TOOLCHAIN_MB=${{ env.MY_TOOLCHAIN_MB }}
+        echo MY_WANT_MODULES=${{ env.MY_WANT_MODULES }}
+
+    # The current versions of various non-core toolchain modules have
+    # problems under older Perls. We make use of this step to get older
+    # versions installed if needed.
+    - name: Install old versions of modules if on old Perl
+      if: env.MY_WANT_MODULES
+      run: cpanm ${{ env.MY_WANT_MODULES }}
+
+    - name: Install module dependencies
+      run: |
+        cpanm Module::Build
+        cpanm --with-configure --notest --installdeps .
+
+    - name: Run ExtUtils::MakeMaker tests
+      if: env.MY_TOOLCHAIN_EUMM
+      run: |
+        perl Makefile.PL
+        perl .github/workflows/make.PL
+        perl .github/workflows/make.PL test
+
+    - name: Run Module::Build tests
+      if: env.MY_TOOLCHAIN_MB
+      run: |
+        perl Build.PL
+        ./Build
+        ./Build test
+
+    # The following technique from Gabor Szabo. Thanks:
+    # https://perlmaven.com/install-developer-dependencies-first-test-css
+    - name: Show cpanm install log under Unix
+      if: failure() && env.MY_IS_UNIX
+      run: cat $MY_HOME/.cpanm/work/*/build.log
+
+    - name: Show cpanm install log under Windows
+      if: failure() && env.MY_IS_WINDOWS
+      run: |
+        $dirs = Get-ChildItem "$env:MY_HOME\\.cpanm\\work\\"
+        foreach ( $d in $dirs ) {
+            $file = $d.FullName + "\\build.log"
+            echo ""
+            echo $file
+            type $file
+        }
