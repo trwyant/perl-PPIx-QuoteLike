@@ -7,7 +7,7 @@ use warnings;
 
 use Config;
 
-our $VERSION = '2.000003';
+our $VERSION = '2.000004';
 
 use constant THIS_PERL  => "$]";
 
