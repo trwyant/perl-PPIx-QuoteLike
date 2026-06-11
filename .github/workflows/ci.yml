@@ -1,6 +1,6 @@
 # Explicit name of workflow. This is optional.
 # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#name
-name: Perl CI v2.0.4
+name: Perl CI v2.0.5
 
 # Specify the events that trigger this workflow.
 # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#on
@@ -57,7 +57,7 @@ jobs:
     steps:
 
     - name: Check out code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Set up perl
       # Specify the action performed by this step. In this case it is a
