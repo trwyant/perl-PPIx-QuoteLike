@@ -8,7 +8,7 @@ use warnings;
 use Carp;
 use base qw{ Exporter };
 
-our $VERSION = '0.023_01';
+our $VERSION = '0.024';
 
 no warnings qw{ once };	# For older Perls.
 
